@@ -30,6 +30,7 @@ rectangle "Módulo de Gestión de Barbería" {
     usecase "Administrar\nBarberos" as UC12
     usecase "Definir\nHorarios" as UC13
     usecase "Actualizar Info\nde Barbería" as UC14
+    usecase "Personalizar\nApariencia" as UC20
   }
   
   ' Reportes y análisis
@@ -64,6 +65,7 @@ AdminBarberia --> UC16
 AdminBarberia --> UC17
 AdminBarberia --> UC18
 AdminBarberia --> UC19
+AdminBarberia --> UC20
 
 ' Admin también puede hacer funciones de barbero
 AdminBarberia --> UC1
@@ -74,6 +76,9 @@ UC10 ..> UC9 : <<include>>
 UC11 ..> UC9 : <<include>>
 UC19 ..> UC15 : <<include>>
 UC19 ..> UC16 : <<include>>
+
+' Extend
+UC20 ..> UC14 : <<extend>>
 
 ' Interacción con cliente
 Cliente ..> UC2 : <<notifica>>
@@ -92,6 +97,23 @@ note right of UC15
   - Semanal
   - Mensual
   - Anual
+end note
+
+note bottom of UC14
+  Información básica:
+  - Nombre y descripción
+  - Horarios de atención
+  - Ubicación y contacto
+  - Redes sociales
+end note
+
+note bottom of UC20
+  Personalización visual:
+  - Logo/imagen corporativa
+  - Colores de marca
+  - Banner promocional
+  - Galería de trabajos
+  - Tema de interfaz
 end note
 
 @enduml
