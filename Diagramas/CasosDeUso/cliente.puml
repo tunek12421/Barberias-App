@@ -1,0 +1,114 @@
+@startuml admin_sistema
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #FFE6E6
+skinparam actorBackgroundColor #FFCC99
+
+title Módulo de Administración del Sistema - Casos de Uso
+
+actor "Administrador\ndel Sistema" as AdminSistema
+actor "Sistema\nAutomatizado" as SistemaAuto <<s>>
+
+rectangle "Módulo de Administración del Sistema" {
+  ' Gestión de usuarios y seguridad
+  package "Gestión de Usuarios y Seguridad" {
+    usecase "Crear Usuario" as UC1
+    usecase "Modificar Usuario" as UC2
+    usecase "Eliminar Usuario" as UC3
+    usecase "Gestionar Roles" as UC4
+    usecase "Asignar Permisos" as UC5
+    usecase "Resetear\nContraseñas" as UC6
+    usecase "Ver Auditoría\nde Accesos" as UC7
+  }
+  
+  ' Gestión de barberías
+  package "Gestión de Barberías" {
+    usecase "Aprobar Nueva\nBarbería" as UC8
+    usecase "Suspender\nBarbería" as UC9
+    usecase "Verificar\nDocumentos" as UC10
+    usecase "Gestionar\nSuscripciones" as UC11
+  }
+  
+  ' Monitoreo y reportes
+  package "Monitoreo y Reportes" {
+    usecase "Ver Métricas\nde Rendimiento" as UC12
+    usecase "Ver Logs\nde Sistema" as UC13
+    usecase "Ver Estado\nde Seguridad" as UC14
+    usecase "Generar Reporte\nde Auditoría" as UC15
+    usecase "Ver Sesiones\nActivas" as UC16
+    usecase "Exportar Logs" as UC17
+  }
+  
+  ' Estadísticas y reportes
+  package "Estadísticas Globales" {
+    usecase "Ver Estadísticas\nde Plataforma" as UC18
+    usecase "Generar Reportes\nEjecutivos" as UC19
+    usecase "Analizar\nTendencias" as UC20
+    usecase "Exportar\nDatos" as UC21
+  }
+}
+
+' Relaciones Admin Sistema
+AdminSistema --> UC1
+AdminSistema --> UC2
+AdminSistema --> UC3
+AdminSistema --> UC4
+AdminSistema --> UC5
+AdminSistema --> UC6
+AdminSistema --> UC7
+AdminSistema --> UC8
+AdminSistema --> UC9
+AdminSistema --> UC10
+AdminSistema --> UC11
+AdminSistema --> UC12
+AdminSistema --> UC13
+AdminSistema --> UC14
+AdminSistema --> UC15
+AdminSistema --> UC16
+AdminSistema --> UC17
+AdminSistema --> UC18
+AdminSistema --> UC19
+AdminSistema --> UC20
+AdminSistema --> UC21
+
+' Sistema automatizado
+SistemaAuto --> UC12
+SistemaAuto --> UC13
+SistemaAuto --> UC7
+
+' Include
+UC5 ..> UC4 : <<include>>
+UC8 ..> UC10 : <<include>>
+UC19 ..> UC18 : <<include>>
+UC15 ..> UC13 : <<include>>
+UC17 ..> UC13 : <<include>>
+
+' Extend
+UC21 ..> UC19 : <<extend>>
+UC16 ..> UC14 : <<extend>>
+
+note left of UC4
+  Roles definidos:
+  - rol_cliente
+  - rol_barbero
+  - rol_admin
+  - rol_admin_sistema
+end note
+
+note right of UC14
+  Información de seguridad visible:
+  - Intentos de acceso fallidos
+  - Certificados SSL activos
+  - Última actualización
+  - Usuarios bloqueados
+  - Alertas de seguridad
+end note
+
+note bottom of UC16
+  Sesiones activas:
+  - Usuario conectado
+  - IP de conexión
+  - Hora de inicio
+  - Última actividad
+end note
+
+@enduml

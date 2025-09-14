@@ -1,0 +1,46 @@
+@startuml admin_usuarios_seguridad
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #FFE6E6
+skinparam actorBackgroundColor #FFCC99
+
+title Gestión de Usuarios y Seguridad - Casos de Uso
+
+actor "Administrador\ndel Sistema" as AdminSistema
+actor "Sistema\nAutomatizado" as SistemaAuto <<s>>
+
+rectangle "Módulo de Administración del Sistema" {
+  package "Gestión de Usuarios y Seguridad" {
+    usecase "Crear Usuario" as UC1
+    usecase "Modificar Usuario" as UC2
+    usecase "Eliminar Usuario" as UC3
+    usecase "Gestionar Roles" as UC4
+    usecase "Asignar Permisos" as UC5
+    usecase "Resetear\nContraseñas" as UC6
+    usecase "Ver Auditoría\nde Accesos" as UC7
+  }
+}
+
+' Relaciones Admin Sistema
+AdminSistema --> UC1
+AdminSistema --> UC2
+AdminSistema --> UC3
+AdminSistema --> UC4
+AdminSistema --> UC5
+AdminSistema --> UC6
+AdminSistema --> UC7
+
+' Sistema automatizado
+SistemaAuto --> UC7
+
+' Include
+UC5 ..> UC4 : <<include>>
+
+note left of UC4
+  Roles definidos:
+  - rol_cliente
+  - rol_barbero
+  - rol_admin
+  - rol_admin_sistema
+end note
+
+@enduml

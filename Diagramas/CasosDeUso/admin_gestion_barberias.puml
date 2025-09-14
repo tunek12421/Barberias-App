@@ -1,0 +1,28 @@
+@startuml admin_gestion_barberias
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #FFE6E6
+skinparam actorBackgroundColor #FFCC99
+
+title Gestión de Barberías - Casos de Uso
+
+actor "Administrador\ndel Sistema" as AdminSistema
+
+rectangle "Módulo de Administración del Sistema" {
+  package "Gestión de Barberías" {
+    usecase "Aprobar Nueva\nBarbería" as UC8
+    usecase "Suspender\nBarbería" as UC9
+    usecase "Verificar\nDocumentos" as UC10
+    usecase "Gestionar\nSuscripciones" as UC11
+  }
+}
+
+' Relaciones Admin Sistema
+AdminSistema --> UC8
+AdminSistema --> UC9
+AdminSistema --> UC10
+AdminSistema --> UC11
+
+' Include
+UC8 ..> UC10 : <<include>>
+
+@enduml

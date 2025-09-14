@@ -1,0 +1,48 @@
+@startuml general
+!define RECTANGLE
+skinparam packageStyle rectangle
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #E8F4FD
+
+title Diagrama General de Alto Nivel - Plataforma de Barberías
+
+actor "Cliente" as Cliente #FFF2CC
+actor "Barbero" as Barbero #FFE6CC
+actor "Administrador\nde Barbería" as AdminBarberia #FFD4A3
+actor "Administrador\ndel Sistema" as AdminSistema #FFCC99
+
+rectangle "Plataforma de Barberías" {
+  package "Módulo de Clientes" #E8F4FD {
+    usecase "Gestión de\nReservas" as MC1
+    usecase "Búsqueda de\nServicios" as MC2
+    usecase "Sistema de\nCalificaciones" as MC3
+  }
+  
+  package "Módulo de Barbería" #E1F5E1 {
+    usecase "Gestión de\nAgenda" as MB1
+    usecase "Administración\nde Servicios" as MB2
+    usecase "Gestión de\nPromociones" as MB3
+  }
+  
+  package "Módulo Administrativo" #FFE6E6 {
+    usecase "Gestión de\nUsuarios" as MA1
+    usecase "Seguridad y\nMonitoreo" as MA2
+    usecase "Reportes y\nEstadísticas" as MA3
+  }
+}
+
+Cliente --> MC1
+Cliente --> MC2
+Cliente --> MC3
+
+Barbero --> MB1
+AdminBarberia --> MB1
+AdminBarberia --> MB2
+AdminBarberia --> MB3
+
+AdminSistema --> MA1
+AdminSistema --> MA2
+AdminSistema --> MA3
+AdminBarberia --> MA3
+
+@enduml

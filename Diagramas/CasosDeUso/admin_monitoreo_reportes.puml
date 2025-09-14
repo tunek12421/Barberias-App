@@ -1,0 +1,58 @@
+@startuml admin_monitoreo_reportes
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #FFE6E6
+skinparam actorBackgroundColor #FFCC99
+
+title Monitoreo y Reportes - Casos de Uso
+
+actor "Administrador\ndel Sistema" as AdminSistema
+actor "Sistema\nAutomatizado" as SistemaAuto <<s>>
+
+rectangle "Módulo de Administración del Sistema" {
+  package "Monitoreo y Reportes" {
+    usecase "Ver Métricas\nde Rendimiento" as UC12
+    usecase "Ver Logs\nde Sistema" as UC13
+    usecase "Ver Estado\nde Seguridad" as UC14
+    usecase "Generar Reporte\nde Auditoría" as UC15
+    usecase "Ver Sesiones\nActivas" as UC16
+    usecase "Exportar Logs" as UC17
+  }
+}
+
+' Relaciones Admin Sistema
+AdminSistema --> UC12
+AdminSistema --> UC13
+AdminSistema --> UC14
+AdminSistema --> UC15
+AdminSistema --> UC16
+AdminSistema --> UC17
+
+' Sistema automatizado
+SistemaAuto --> UC12
+SistemaAuto --> UC13
+
+' Include
+UC15 ..> UC13 : <<include>>
+UC17 ..> UC13 : <<include>>
+
+' Extend
+UC16 ..> UC14 : <<extend>>
+
+note right of UC14
+  Información de seguridad visible:
+  - Intentos de acceso fallidos
+  - Certificados SSL activos
+  - Última actualización
+  - Usuarios bloqueados
+  - Alertas de seguridad
+end note
+
+note bottom of UC16
+  Sesiones activas:
+  - Usuario conectado
+  - IP de conexión
+  - Hora de inicio
+  - Última actividad
+end note
+
+@enduml

@@ -1,0 +1,97 @@
+@startuml barberia
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #E1F5E1
+skinparam actorBackgroundColor #FFE6CC
+
+title Módulo de Gestión de Barbería - Casos de Uso
+
+actor "Barbero" as Barbero
+actor "Administrador\nde Barbería" as AdminBarberia
+actor "Cliente" as Cliente <<secondary>>
+
+rectangle "Módulo de Gestión de Barbería" {
+  ' Gestión operativa del barbero
+  package "Gestión Operativa Barbero" {
+    usecase "Ver Agenda\ndel Día" as UC1
+    usecase "Confirmar Cita" as UC2
+    usecase "Marcar Cita\nCompletada" as UC3
+    usecase "Cancelar Cita" as UC4
+    usecase "Actualizar\nDisponibilidad" as UC5
+    usecase "Ver Próximas\nCitas" as UC6
+    usecase "Ver Calificaciones\nPersonales" as UC7
+  }
+  
+  ' Administración de la barbería
+  package "Administración de Barbería" {
+    usecase "Gestionar\nServicios" as UC8
+    usecase "Actualizar\nPrecios" as UC9
+    usecase "Crear\nPromociones" as UC10
+    usecase "Gestionar\nDescuentos" as UC11
+    usecase "Administrar\nBarberos" as UC12
+    usecase "Definir\nHorarios" as UC13
+    usecase "Actualizar Info\nde Barbería" as UC14
+  }
+  
+  ' Reportes y análisis
+  package "Reportes y Análisis" {
+    usecase "Ver Reporte\nde Ingresos" as UC15
+    usecase "Ver Servicios\nmás Solicitados" as UC16
+    usecase "Ver Clientes\nFrecuentes" as UC17
+    usecase "Analizar\nOcupación" as UC18
+    usecase "Exportar\nReportes" as UC19
+  }
+}
+
+' Relaciones Barbero
+Barbero --> UC1
+Barbero --> UC2
+Barbero --> UC3
+Barbero --> UC4
+Barbero --> UC5
+Barbero --> UC6
+Barbero --> UC7
+
+' Relaciones Admin Barbería
+AdminBarberia --> UC8
+AdminBarberia --> UC9
+AdminBarberia --> UC10
+AdminBarberia --> UC11
+AdminBarberia --> UC12
+AdminBarberia --> UC13
+AdminBarberia --> UC14
+AdminBarberia --> UC15
+AdminBarberia --> UC16
+AdminBarberia --> UC17
+AdminBarberia --> UC18
+AdminBarberia --> UC19
+
+' Admin también puede hacer funciones de barbero
+AdminBarberia --> UC1
+AdminBarberia --> UC2
+
+' Include
+UC10 ..> UC9 : <<include>>
+UC11 ..> UC9 : <<include>>
+UC19 ..> UC15 : <<include>>
+UC19 ..> UC16 : <<include>>
+
+' Interacción con cliente
+Cliente ..> UC2 : <<notifica>>
+
+note left of UC8
+  Incluye:
+  - Crear servicio
+  - Modificar servicio
+  - Eliminar servicio
+  - Definir duración
+end note
+
+note right of UC15
+  Reportes incluyen:
+  - Diario
+  - Semanal
+  - Mensual
+  - Anual
+end note
+
+@enduml

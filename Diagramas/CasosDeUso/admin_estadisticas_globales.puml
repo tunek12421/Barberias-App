@@ -1,0 +1,31 @@
+@startuml admin_estadisticas_globales
+skinparam backgroundColor #FFFFFE
+skinparam usecaseBackgroundColor #FFE6E6
+skinparam actorBackgroundColor #FFCC99
+
+title Estadísticas Globales - Casos de Uso
+
+actor "Administrador\ndel Sistema" as AdminSistema
+
+rectangle "Módulo de Administración del Sistema" {
+  package "Estadísticas Globales" {
+    usecase "Ver Estadísticas\nde Plataforma" as UC18
+    usecase "Generar Reportes\nEjecutivos" as UC19
+    usecase "Analizar\nTendencias" as UC20
+    usecase "Exportar\nDatos" as UC21
+  }
+}
+
+' Relaciones Admin Sistema
+AdminSistema --> UC18
+AdminSistema --> UC19
+AdminSistema --> UC20
+AdminSistema --> UC21
+
+' Include
+UC19 ..> UC18 : <<include>>
+
+' Extend
+UC21 ..> UC19 : <<extend>>
+
+@enduml
