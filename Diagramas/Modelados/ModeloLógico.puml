@@ -54,21 +54,6 @@ class administradores_barberia {
     estado_admin
 }
 
-class personal_barbero {
-    <<table>>
-    +id_personal: PK
-    --
-    id_usuario: FK
-    nombre
-    apellido
-    telefono
-    dni: AK
-    email_contacto: AK
-    especialidad
-    experiencia_años
-    estado_personal
-}
-
 class barberias {
     <<table>>
     +id_barberia: PK
@@ -90,9 +75,16 @@ class barberos {
     <<table>>
     +id_barbero: PK
     --
-    id_personal: FK
+    id_usuario: FK
     id_barberia: FK
     codigo_empleado: AK
+    nombre
+    apellido
+    telefono
+    dni: AK
+    email_contacto: AK
+    especialidad
+    experiencia_años
     fecha_ingreso
     foto_perfil
     biografia
@@ -109,19 +101,9 @@ class servicios {
     nombre
     descripcion
     duracion_minutos
+    precio
     categoria
     estado_servicio
-}
-
-class precios_servicio {
-    <<table>>
-    +id_precio: PK
-    --
-    id_servicio: FK
-    precio
-    fecha_inicio_vigencia
-    fecha_fin_vigencia
-    activo
 }
 
 class barberos_servicios {
@@ -196,31 +178,16 @@ class promociones {
     estado_promocion
 }
 
-class suscripciones {
-    <<table>>
-    +id_suscripcion: PK
-    --
-    id_barberia: FK NN
-    tipo_plan
-    fecha_inicio
-    fecha_fin
-    monto_mensual
-    estado_suscripcion
-    caracteristicas_plan
-}
-
 ' === RELACIONES REFERENCIALES ===
 usuarios ||--o{ clientes : "registra_como"
 usuarios ||--o{ administradores_barberia : "registra_como"
-usuarios ||--o{ personal_barbero : "registra_como"
+usuarios ||--o{ barberos : "registra_como"
 
 administradores_barberia ||--o{ barberias : "administra"
 
-personal_barbero ||--o{ barberos : "trabaja_como"
 barberias ||--o{ barberos : "emplea"
 
 barberias ||--o{ servicios : "ofrece"
-servicios ||--|| precios_servicio : "tiene_precio"
 
 barberos ||--o{ barberos_servicios : "puede_realizar"
 servicios ||--o{ barberos_servicios : "es_realizado_por"
@@ -233,7 +200,6 @@ barberos_servicios ||--o{ reservas : "asigna_servicio"
 reservas ||--o| calificaciones : "genera_calificacion"
 
 barberias ||--o{ promociones : "publica"
-barberias ||--|| suscripciones : "tiene_plan"
 
 note top
   **MODELO LÓGICO RELACIONAL**

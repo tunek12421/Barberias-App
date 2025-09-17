@@ -1,506 +1,274 @@
-@startuml modelo_fisico_implementacion
+@startuml modelo_fisico_simplificado
 skinparam backgroundColor #FFFFFE
 skinparam class {
     BackgroundColor #F0F8FF
     BorderColor #4169E1
     ArrowColor #4169E1
 }
-skinparam note {
-    BackgroundColor #E6F3FF
-    BorderColor #1E90FF
-}
 
-title Modelo Físico - Base de Datos PostgreSQL - Plataforma de Barberías
+title Modelo Físico Simplificado - Gestión Eficiente de Barberías
 
-' === TABLAS CON IMPLEMENTACIÓN FÍSICA ===
+' === ENTIDADES CORE SIMPLIFICADAS ===
+
 class usuarios {
     <<table>>
     +id_usuario: SERIAL <<PK>>
     --
     email: VARCHAR(100) <<NOT NULL UNIQUE>>
     password_hash: VARCHAR(255) <<NOT NULL>>
+    nombre: VARCHAR(50) <<NOT NULL>>
+    apellido: VARCHAR(50) <<NOT NULL>>
+    telefono: VARCHAR(20)
     rol: usuario_rol_enum <<NOT NULL>>
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    estado: estado_usuario_enum <<NOT NULL DEFAULT 'activo'>>
     ultimo_acceso: TIMESTAMP
-    intentos_fallidos: INTEGER <<DEFAULT 0>>
-    token_reset: VARCHAR(255)
-    token_expiry: TIMESTAMP
     --
     <<INDEX>> idx_usuarios_email
+    <<INDEX>> idx_usuarios_rol
     <<INDEX>> idx_usuarios_estado
-    <<CHECK>> chk_intentos_fallidos >= 0
 }
 
 class clientes {
     <<table>>
     +id_cliente: SERIAL <<PK>>
     --
-    id_usuario: INTEGER <<FK NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE>>
-    nombre: VARCHAR(50) <<NOT NULL>>
-    apellido: VARCHAR(50) <<NOT NULL>>
-    telefono: VARCHAR(20)
-    email_contacto: VARCHAR(100) <<NOT NULL UNIQUE>>
+    id_usuario: INTEGER <<NOT NULL UNIQUE FK>>
     dni: VARCHAR(20) <<UNIQUE>>
     direccion: TEXT
     fecha_nacimiento: DATE
     preferencias: JSONB
     puntos_fidelidad: INTEGER <<DEFAULT 0>>
     fecha_primera_visita: DATE
-    estado_cliente: estado_cliente_enum <<NOT NULL DEFAULT 'activo'>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     --
     <<INDEX>> idx_clientes_usuario
-    <<INDEX>> idx_clientes_email
     <<INDEX>> idx_clientes_dni
     <<INDEX>> idx_clientes_estado
-    <<INDEX>> idx_clientes_puntos (preferencias USING GIN)
+    <<INDEX>> idx_clientes_puntos
     <<CHECK>> chk_puntos_fidelidad >= 0
-    <<CHECK>> chk_fecha_nacimiento <= CURRENT_DATE - INTERVAL '18 years'
-}
-
-class administradores_barberia {
-    <<table>>
-    +id_admin: SERIAL <<PK>>
-    --
-    id_usuario: INTEGER <<FK NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE>>
-    nombre: VARCHAR(50) <<NOT NULL>>
-    apellido: VARCHAR(50) <<NOT NULL>>
-    telefono: VARCHAR(20)
-    email_contacto: VARCHAR(100) <<NOT NULL UNIQUE>>
-    dni: VARCHAR(20) <<NOT NULL UNIQUE>>
-    nivel_acceso: nivel_acceso_enum <<NOT NULL DEFAULT 'limitado'>>
-    fecha_asignacion: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    estado_admin: estado_admin_enum <<NOT NULL DEFAULT 'activo'>>
-    permisos_especiales: JSONB
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
-    --
-    <<INDEX>> idx_admin_usuario
-    <<INDEX>> idx_admin_email
-    <<INDEX>> idx_admin_dni
-    <<INDEX>> idx_admin_estado
-}
-
-class personal_barbero {
-    <<table>>
-    +id_personal: SERIAL <<PK>>
-    --
-    id_usuario: INTEGER <<FK NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE>>
-    nombre: VARCHAR(50) <<NOT NULL>>
-    apellido: VARCHAR(50) <<NOT NULL>>
-    telefono: VARCHAR(20)
-    dni: VARCHAR(20) <<NOT NULL UNIQUE>>
-    email_contacto: VARCHAR(100) <<NOT NULL UNIQUE>>
-    direccion: TEXT
-    fecha_nacimiento: DATE <<NOT NULL>>
-    especialidad: especialidad_enum
-    experiencia_años: INTEGER <<DEFAULT 0>>
-    certificaciones: JSONB
-    estado_personal: estado_personal_enum <<NOT NULL DEFAULT 'disponible'>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
-    --
-    <<INDEX>> idx_personal_usuario
-    <<INDEX>> idx_personal_dni
-    <<INDEX>> idx_personal_email
-    <<INDEX>> idx_personal_especialidad
-    <<CHECK>> chk_experiencia_años >= 0
-    <<CHECK>> chk_fecha_nacimiento <= CURRENT_DATE - INTERVAL '16 years'
+    <<FOREIGN KEY>> (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
 }
 
 class barberias {
     <<table>>
     +id_barberia: SERIAL <<PK>>
     --
-    id_admin: INTEGER <<FK NOT NULL REFERENCES administradores_barberia(id_admin)>>
-    codigo_barberia: VARCHAR(20) <<NOT NULL UNIQUE>>
+    id_admin: INTEGER <<NOT NULL FK>>
     nombre: VARCHAR(100) <<NOT NULL>>
-    descripcion: TEXT
     direccion: TEXT <<NOT NULL>>
-    latitud: DECIMAL(10,8)
-    longitud: DECIMAL(11,8)
     telefono: VARCHAR(20) <<NOT NULL>>
     email: VARCHAR(100) <<NOT NULL>>
     horario_apertura: TIME <<NOT NULL>>
     horario_cierre: TIME <<NOT NULL>>
-    dias_atencion: INTEGER[] <<NOT NULL DEFAULT '{1,2,3,4,5,6}'>>
-    estado: estado_barberia_enum <<NOT NULL DEFAULT 'pendiente'>>
+    latitud: DECIMAL(10,8)
+    longitud: DECIMAL(11,8)
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    politicas_cancelacion: TEXT
-    metadatos: JSONB
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
     --
     <<INDEX>> idx_barberias_admin
-    <<INDEX>> idx_barberias_codigo
     <<INDEX>> idx_barberias_estado
     <<INDEX>> idx_barberias_ubicacion (latitud, longitud)
-    <<INDEX>> idx_barberias_busqueda (to_tsvector('spanish', nombre || ' ' || descripcion)) USING GIN
     <<CHECK>> chk_horario_valido (horario_apertura < horario_cierre)
-    <<CHECK>> chk_coordenadas_validas (latitud BETWEEN -90 AND 90 AND longitud BETWEEN -180 AND 180)
+    <<FOREIGN KEY>> (id_admin) REFERENCES usuarios(id_usuario)
 }
 
 class barberos {
     <<table>>
     +id_barbero: SERIAL <<PK>>
     --
-    id_personal: INTEGER <<FK NOT NULL REFERENCES personal_barbero(id_personal) ON DELETE CASCADE>>
-    id_barberia: INTEGER <<FK NOT NULL REFERENCES barberias(id_barberia) ON DELETE CASCADE>>
-    codigo_empleado: VARCHAR(20) <<NOT NULL>>
-    fecha_ingreso: DATE <<NOT NULL DEFAULT CURRENT_DATE>>
-    fecha_salida: DATE
-    foto_perfil: VARCHAR(500)
-    biografia: TEXT
-    estado_barbero: estado_barbero_enum <<NOT NULL DEFAULT 'activo'>>
+    id_usuario: INTEGER <<NOT NULL UNIQUE FK>>
+    id_barberia: INTEGER <<NOT NULL FK>>
+    especialidades: TEXT[]
+    experiencia_años: INTEGER <<DEFAULT 0>>
     calificacion_promedio: DECIMAL(3,2) <<DEFAULT 0.00>>
-    total_servicios_realizados: INTEGER <<DEFAULT 0>>
-    comision_porcentaje: DECIMAL(5,2) <<DEFAULT 50.00>>
-    salario_base: DECIMAL(10,2)
-    configuracion_notificaciones: JSONB
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
+    fecha_ingreso: DATE <<NOT NULL DEFAULT CURRENT_DATE>>
     --
-    <<INDEX>> idx_barberos_personal
+    <<INDEX>> idx_barberos_usuario
     <<INDEX>> idx_barberos_barberia
-    <<INDEX>> idx_barberos_codigo
     <<INDEX>> idx_barberos_estado
     <<INDEX>> idx_barberos_calificacion
-    <<UNIQUE>> uk_barberos_personal_barberia (id_personal, id_barberia)
+    <<INDEX>> idx_barberos_especialidades (especialidades) USING GIN
     <<CHECK>> chk_calificacion_range (calificacion_promedio BETWEEN 0.00 AND 5.00)
-    <<CHECK>> chk_total_servicios >= 0
-    <<CHECK>> chk_comision_range (comision_porcentaje BETWEEN 0.00 AND 100.00)
-    <<CHECK>> chk_fechas_coherentes (fecha_salida IS NULL OR fecha_salida >= fecha_ingreso)
+    <<CHECK>> chk_experiencia_años >= 0
+    <<FOREIGN KEY>> (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    <<FOREIGN KEY>> (id_barberia) REFERENCES barberias(id_barberia) ON DELETE CASCADE
 }
 
 class servicios {
     <<table>>
     +id_servicio: SERIAL <<PK>>
     --
-    id_barberia: INTEGER <<FK NOT NULL REFERENCES barberias(id_barberia) ON DELETE CASCADE>>
-    codigo_servicio: VARCHAR(20) <<NOT NULL>>
+    id_barberia: INTEGER <<NOT NULL FK>>
     nombre: VARCHAR(100) <<NOT NULL>>
     descripcion: TEXT
     duracion_minutos: INTEGER <<NOT NULL>>
+    precio: DECIMAL(10,2) <<NOT NULL>>
     categoria: categoria_servicio_enum <<NOT NULL>>
-    requiere_cita_previa: BOOLEAN <<NOT NULL DEFAULT TRUE>>
-    disponible_online: BOOLEAN <<NOT NULL DEFAULT TRUE>>
-    estado_servicio: estado_servicio_enum <<NOT NULL DEFAULT 'activo'>>
-    imagen_url: VARCHAR(500)
-    instrucciones_especiales: TEXT
-    productos_incluidos: JSONB
-    etiquetas: TEXT[]
-    orden_visualizacion: INTEGER <<DEFAULT 1>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     --
     <<INDEX>> idx_servicios_barberia
-    <<INDEX>> idx_servicios_codigo
     <<INDEX>> idx_servicios_categoria
     <<INDEX>> idx_servicios_estado
-    <<INDEX>> idx_servicios_duracion
-    <<INDEX>> idx_servicios_busqueda (to_tsvector('spanish', nombre || ' ' || descripcion)) USING GIN
-    <<INDEX>> idx_servicios_etiquetas (etiquetas) USING GIN
-    <<UNIQUE>> uk_servicios_codigo_barberia (codigo_servicio, id_barberia)
-    <<CHECK>> chk_duracion_minutos BETWEEN 5 AND 480
-    <<CHECK>> chk_orden_visualizacion > 0
-}
-
-class precios_servicio {
-    <<table>>
-    +id_precio: SERIAL <<PK>>
-    --
-    id_servicio: INTEGER <<FK NOT NULL REFERENCES servicios(id_servicio) ON DELETE CASCADE>>
-    precio: DECIMAL(10,2) <<NOT NULL>>
-    fecha_inicio_vigencia: DATE <<NOT NULL DEFAULT CURRENT_DATE>>
-    fecha_fin_vigencia: DATE
-    motivo_cambio: VARCHAR(255)
-    activo: BOOLEAN <<NOT NULL DEFAULT TRUE>>
-    created_by: INTEGER <<NOT NULL>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    --
-    <<INDEX>> idx_precios_servicio
-    <<INDEX>> idx_precios_vigencia
-    <<INDEX>> idx_precios_activo
+    <<INDEX>> idx_servicios_precio
+    <<CHECK>> chk_duracion_minutos BETWEEN 15 AND 180
     <<CHECK>> chk_precio > 0
-    <<CHECK>> chk_vigencia_coherente (fecha_fin_vigencia IS NULL OR fecha_fin_vigencia >= fecha_inicio_vigencia)
+    <<FOREIGN KEY>> (id_barberia) REFERENCES barberias(id_barberia) ON DELETE CASCADE
 }
 
-class barberos_servicios {
+class barbero_servicios {
     <<table>>
     +id_asignacion: SERIAL <<PK>>
     --
-    id_barbero: INTEGER <<FK NOT NULL REFERENCES barberos(id_barbero) ON DELETE CASCADE>>
-    id_servicio: INTEGER <<FK NOT NULL REFERENCES servicios(id_servicio) ON DELETE CASCADE>>
-    fecha_asignacion: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    precio_especial: DECIMAL(10,2)
-    tiempo_extra_minutos: INTEGER <<DEFAULT 0>>
-    notas_asignacion: TEXT
+    id_barbero: INTEGER <<NOT NULL FK>>
+    id_servicio: INTEGER <<NOT NULL FK>>
     activo: BOOLEAN <<NOT NULL DEFAULT TRUE>>
-    nivel_habilidad: habilidad_enum <<DEFAULT 'intermedio'>>
-    certificado: BOOLEAN <<DEFAULT FALSE>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
     --
     <<INDEX>> idx_asignaciones_barbero
     <<INDEX>> idx_asignaciones_servicio
     <<INDEX>> idx_asignaciones_activo
-    <<INDEX>> idx_asignaciones_habilidad
-    <<UNIQUE>> uk_asignaciones_barbero_servicio (id_barbero, id_servicio)
-    <<CHECK>> chk_precio_especial > 0
-    <<CHECK>> chk_tiempo_extra BETWEEN -60 AND 120
-}
-
-class horarios_barbero {
-    <<table>>
-    +id_horario: SERIAL <<PK>>
-    --
-    id_barbero: INTEGER <<FK NOT NULL REFERENCES barberos(id_barbero) ON DELETE CASCADE>>
-    dia_semana: INTEGER <<NOT NULL>>
-    hora_inicio: TIME <<NOT NULL>>
-    hora_fin: TIME <<NOT NULL>>
-    hora_almuerzo_inicio: TIME
-    hora_almuerzo_fin: TIME
-    disponible: BOOLEAN <<NOT NULL DEFAULT TRUE>>
-    tipo_horario: tipo_horario_enum <<NOT NULL DEFAULT 'regular'>>
-    fecha_especifica: DATE
-    notas: VARCHAR(255)
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
-    --
-    <<INDEX>> idx_horarios_barbero
-    <<INDEX>> idx_horarios_dia
-    <<INDEX>> idx_horarios_disponible
-    <<INDEX>> idx_horarios_fecha_especifica
-    <<UNIQUE>> uk_horarios_barbero_dia (id_barbero, dia_semana) WHERE tipo_horario = 'regular'
-    <<CHECK>> chk_dia_semana BETWEEN 1 AND 7
-    <<CHECK>> chk_horario_trabajo (hora_inicio < hora_fin)
-    <<CHECK>> chk_horario_almuerzo (hora_almuerzo_inicio IS NULL OR (hora_almuerzo_inicio < hora_almuerzo_fin AND hora_almuerzo_inicio >= hora_inicio AND hora_almuerzo_fin <= hora_fin))
+    <<UNIQUE>> uk_barbero_servicio (id_barbero, id_servicio)
+    <<FOREIGN KEY>> (id_barbero) REFERENCES barberos(id_barbero) ON DELETE CASCADE
+    <<FOREIGN KEY>> (id_servicio) REFERENCES servicios(id_servicio) ON DELETE CASCADE
 }
 
 class reservas {
     <<table>>
     +id_reserva: SERIAL <<PK>>
     --
-    codigo_reserva: VARCHAR(20) <<NOT NULL UNIQUE>>
-    id_cliente: INTEGER <<FK NOT NULL REFERENCES clientes(id_cliente)>>
-    id_asignacion: INTEGER <<FK NOT NULL REFERENCES barberos_servicios(id_asignacion)>>
+    id_cliente: INTEGER <<NOT NULL FK>>
+    id_barbero: INTEGER <<NOT NULL FK>>
+    id_servicio: INTEGER <<NOT NULL FK>>
     fecha_hora: TIMESTAMP <<NOT NULL>>
-    fecha_fin_estimada: TIMESTAMP <<NOT NULL>>
-    estado_reserva: estado_reserva_enum <<NOT NULL DEFAULT 'pendiente'>>
-    origen_reserva: origen_reserva_enum <<NOT NULL DEFAULT 'web'>>
+    duracion_estimada: INTEGER <<NOT NULL>>
+    precio_acordado: DECIMAL(10,2) <<NOT NULL>>
+    estado: estado_reserva_enum <<NOT NULL DEFAULT 'pendiente'>>
     notas_cliente: TEXT
     notas_barbero: TEXT
-    notas_internas: TEXT
-    precio_original: DECIMAL(10,2) <<NOT NULL>>
-    descuento_aplicado: DECIMAL(10,2) <<DEFAULT 0.00>>
-    precio_final: DECIMAL(10,2) <<NOT NULL>>
-    metodo_pago: metodo_pago_enum
-    estado_pago: estado_pago_enum <<DEFAULT 'pendiente'>>
-    recordatorio_enviado: BOOLEAN <<DEFAULT FALSE>>
-    tiempo_tolerancia_minutos: INTEGER <<DEFAULT 15>>
-    requiere_confirmacion: BOOLEAN <<DEFAULT TRUE>>
-    puntos_ganados: INTEGER <<DEFAULT 0>>
-    puntos_utilizados: INTEGER <<DEFAULT 0>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
+    fecha_creacion: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
+    fecha_confirmacion: TIMESTAMP
+    fecha_completada: TIMESTAMP
     --
-    <<INDEX>> idx_reservas_codigo
     <<INDEX>> idx_reservas_cliente
-    <<INDEX>> idx_reservas_asignacion
+    <<INDEX>> idx_reservas_barbero
+    <<INDEX>> idx_reservas_servicio
     <<INDEX>> idx_reservas_fecha_hora
     <<INDEX>> idx_reservas_estado
-    <<INDEX>> idx_reservas_fecha_estado (fecha_hora, estado_reserva)
-    <<INDEX>> idx_reservas_barbero_fecha ((SELECT id_barbero FROM barberos_servicios WHERE id_asignacion = reservas.id_asignacion), fecha_hora)
-    <<CHECK>> chk_precio_original > 0
-    <<CHECK>> chk_precio_final >= 0
-    <<CHECK>> chk_descuento_valido (descuento_aplicado >= 0 AND descuento_aplicado <= precio_original)
-    <<CHECK>> chk_fecha_fin_coherente (fecha_fin_estimada > fecha_hora)
-    <<CHECK>> chk_tolerancia_valida (tiempo_tolerancia_minutos BETWEEN 0 AND 60)
-    <<CHECK>> chk_puntos_coherentes (puntos_ganados >= 0 AND puntos_utilizados >= 0)
-}
-
-class calificaciones {
-    <<table>>
-    +id_calificacion: SERIAL <<PK>>
-    --
-    id_reserva: INTEGER <<FK NOT NULL UNIQUE REFERENCES reservas(id_reserva) ON DELETE CASCADE>>
-    puntuacion_servicio: INTEGER <<NOT NULL>>
-    puntuacion_barbero: INTEGER <<NOT NULL>>
-    puntuacion_barberia: INTEGER <<NOT NULL>>
-    puntuacion_general: DECIMAL(3,2) <<GENERATED ALWAYS AS ((puntuacion_servicio + puntuacion_barbero + puntuacion_barberia) / 3.0) STORED>>
-    comentario: TEXT
-    aspectos_positivos: TEXT[]
-    aspectos_mejorar: TEXT[]
-    recomendaria: BOOLEAN
-    fecha_calificacion: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    visible: BOOLEAN <<NOT NULL DEFAULT TRUE>>
-    respuesta_barberia: TEXT
-    fecha_respuesta: TIMESTAMP
-    moderado: BOOLEAN <<DEFAULT FALSE>>
-    motivo_moderacion: VARCHAR(255)
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    --
-    <<INDEX>> idx_calificaciones_reserva
-    <<INDEX>> idx_calificaciones_fecha
-    <<INDEX>> idx_calificaciones_visible
-    <<INDEX>> idx_calificaciones_general
-    <<INDEX>> idx_calificaciones_barbero ((SELECT bs.id_barbero FROM barberos_servicios bs JOIN reservas r ON r.id_asignacion = bs.id_asignacion WHERE r.id_reserva = calificaciones.id_reserva))
-    <<CHECK>> chk_puntuacion_servicio BETWEEN 1 AND 5
-    <<CHECK>> chk_puntuacion_barbero BETWEEN 1 AND 5
-    <<CHECK>> chk_puntuacion_barberia BETWEEN 1 AND 5
+    <<INDEX>> idx_reservas_fecha_creacion
+    <<CHECK>> chk_fecha_futura (fecha_hora > fecha_creacion)
+    <<CHECK>> chk_duracion_estimada > 0
+    <<CHECK>> chk_precio_acordado > 0
+    <<FOREIGN KEY>> (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
+    <<FOREIGN KEY>> (id_barbero) REFERENCES barberos(id_barbero) ON DELETE CASCADE
+    <<FOREIGN KEY>> (id_servicio) REFERENCES servicios(id_servicio) ON DELETE CASCADE
 }
 
 class promociones {
     <<table>>
     +id_promocion: SERIAL <<PK>>
     --
-    id_barberia: INTEGER <<FK NOT NULL REFERENCES barberias(id_barberia) ON DELETE CASCADE>>
-    codigo_promocion: VARCHAR(20) <<NOT NULL>>
-    titulo: VARCHAR(100) <<NOT NULL>>
-    descripcion: TEXT <<NOT NULL>>
-    tipo_descuento: tipo_descuento_enum <<NOT NULL>>
-    valor_descuento: DECIMAL(10,2) <<NOT NULL>>
-    monto_minimo_compra: DECIMAL(10,2) <<DEFAULT 0.00>>
+    id_barberia: INTEGER <<NOT NULL FK>>
+    nombre: VARCHAR(100) <<NOT NULL>>
+    descripcion: TEXT
+    descuento_porcentaje: DECIMAL(5,2)
+    descuento_monto: DECIMAL(10,2)
     fecha_inicio: DATE <<NOT NULL>>
     fecha_fin: DATE <<NOT NULL>>
-    hora_inicio: TIME
-    hora_fin: TIME
-    dias_semana_validos: INTEGER[] <<DEFAULT '{1,2,3,4,5,6,7}'>>
-    max_usos_total: INTEGER
-    max_usos_por_cliente: INTEGER <<DEFAULT 1>>
+    max_usos: INTEGER
     usos_actuales: INTEGER <<DEFAULT 0>>
-    servicios_aplicables: INTEGER[]
-    clientes_elegibles: INTEGER[]
-    requiere_codigo: BOOLEAN <<NOT NULL DEFAULT FALSE>>
-    apilable_con_otras: BOOLEAN <<DEFAULT FALSE>>
-    estado_promocion: estado_promocion_enum <<NOT NULL DEFAULT 'activa'>>
-    created_by: INTEGER <<NOT NULL>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     --
     <<INDEX>> idx_promociones_barberia
-    <<INDEX>> idx_promociones_codigo
-    <<INDEX>> idx_promociones_vigencia (fecha_inicio, fecha_fin)
+    <<INDEX>> idx_promociones_fechas
     <<INDEX>> idx_promociones_estado
-    <<INDEX>> idx_promociones_servicios (servicios_aplicables) USING GIN
-    <<UNIQUE>> uk_promociones_codigo_barberia (codigo_promocion, id_barberia)
-    <<CHECK>> chk_valor_descuento > 0
     <<CHECK>> chk_fechas_promocion (fecha_fin >= fecha_inicio)
-    <<CHECK>> chk_horarios_promocion (hora_inicio IS NULL OR hora_fin IS NULL OR hora_inicio < hora_fin)
-    <<CHECK>> chk_max_usos (max_usos_total IS NULL OR max_usos_total > 0)
+    <<CHECK>> chk_descuentos (
+        (descuento_porcentaje IS NOT NULL AND descuento_porcentaje BETWEEN 0 AND 100) OR
+        (descuento_monto IS NOT NULL AND descuento_monto > 0)
+    )
+    <<CHECK>> chk_max_usos (max_usos IS NULL OR max_usos > 0)
     <<CHECK>> chk_usos_actuales (usos_actuales >= 0)
+    <<FOREIGN KEY>> (id_barberia) REFERENCES barberias(id_barberia) ON DELETE CASCADE
 }
 
-class suscripciones {
+class calificaciones {
     <<table>>
-    +id_suscripcion: SERIAL <<PK>>
+    +id_calificacion: SERIAL <<PK>>
     --
-    id_barberia: INTEGER <<FK NOT NULL UNIQUE REFERENCES barberias(id_barberia) ON DELETE CASCADE>>
-    tipo_plan: plan_suscripcion_enum <<NOT NULL>>
-    fecha_inicio: DATE <<NOT NULL>>
-    fecha_fin: DATE <<NOT NULL>>
-    monto_mensual: DECIMAL(10,2) <<NOT NULL>>
-    estado_suscripcion: estado_suscripcion_enum <<NOT NULL DEFAULT 'activa'>>
-    limite_barberos: INTEGER <<NOT NULL>>
-    limite_servicios: INTEGER <<NOT NULL>>
-    limite_reservas_mes: INTEGER
-    caracteristicas_incluidas: JSONB <<NOT NULL>>
-    metodo_pago_preferido: metodo_pago_enum
-    auto_renovacion: BOOLEAN <<DEFAULT TRUE>>
-    fecha_ultimo_pago: DATE
-    proximo_cobro: DATE
-    descuento_anual: DECIMAL(5,2) <<DEFAULT 0.00>>
-    created_at: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
-    updated_at: TIMESTAMP <<DEFAULT NOW()>>
+    id_reserva: INTEGER <<NOT NULL UNIQUE FK>>
+    puntuacion_servicio: INTEGER <<NOT NULL>>
+    puntuacion_barbero: INTEGER <<NOT NULL>>
+    comentario: TEXT
+    fecha_calificacion: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     --
-    <<INDEX>> idx_suscripciones_barberia
-    <<INDEX>> idx_suscripciones_plan
-    <<INDEX>> idx_suscripciones_estado
-    <<INDEX>> idx_suscripciones_vigencia (fecha_inicio, fecha_fin)
-    <<INDEX>> idx_suscripciones_proximo_cobro
-    <<CHECK>> chk_fecha_fin_posterior (fecha_fin > fecha_inicio)
-    <<CHECK>> chk_monto_positivo (monto_mensual > 0)
-    <<CHECK>> chk_limites_positivos (limite_barberos > 0 AND limite_servicios > 0)
-    <<CHECK>> chk_descuento_anual (descuento_anual BETWEEN 0.00 AND 50.00)
+    <<INDEX>> idx_calificaciones_reserva
+    <<INDEX>> idx_calificaciones_fecha
+    <<INDEX>> idx_calificaciones_puntuacion
+    <<CHECK>> chk_puntuacion_servicio BETWEEN 1 AND 5
+    <<CHECK>> chk_puntuacion_barbero BETWEEN 1 AND 5
+    <<FOREIGN KEY>> (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE
 }
 
-' === TIPOS ENUMERADOS ===
+' === TIPOS ENUMERADOS SIMPLIFICADOS ===
 note as enum_types
-**TIPOS ENUMERADOS DEFINIDOS:**
+**TIPOS ENUMERADOS:**
 
-**usuario_rol_enum:** 'cliente', 'admin_barberia', 'barbero', 'super_admin'
-**estado_usuario_enum:** 'activo', 'inactivo', 'suspendido', 'bloqueado'
-**estado_cliente_enum:** 'activo', 'inactivo', 'vip', 'suspendido'
-**nivel_acceso_enum:** 'total', 'limitado', 'solo_lectura'
-**estado_admin_enum:** 'activo', 'inactivo', 'suspendido'
-**estado_personal_enum:** 'disponible', 'ocupado', 'inactivo', 'vacaciones'
-**especialidad_enum:** 'corte_clasico', 'barba', 'bigote', 'afeitado', 'tratamientos', 'coloracion'
-**estado_barberia_enum:** 'pendiente', 'activa', 'suspendida', 'cerrada_temporal'
-**estado_barbero_enum:** 'activo', 'inactivo', 'vacaciones', 'licencia', 'suspendido'
-**categoria_servicio_enum:** 'corte', 'barba', 'tratamiento', 'combo', 'especial'
-**estado_servicio_enum:** 'activo', 'inactivo', 'agotado', 'mantenimiento'
-**habilidad_enum:** 'basico', 'intermedio', 'avanzado', 'experto'
-**tipo_horario_enum:** 'regular', 'especial', 'vacaciones', 'licencia'
-**estado_reserva_enum:** 'pendiente', 'confirmada', 'en_curso', 'completada', 'cancelada', 'no_asistio'
-**origen_reserva_enum:** 'web', 'app_movil', 'telefono', 'presencial', 'whatsapp'
-**metodo_pago_enum:** 'efectivo', 'tarjeta', 'transferencia', 'app_pago', 'criptomoneda'
-**estado_pago_enum:** 'pendiente', 'pagado', 'fallido', 'reembolsado'
-**tipo_descuento_enum:** 'porcentaje', 'monto_fijo', 'servicio_gratis'
-**estado_promocion_enum:** 'activa', 'pausada', 'vencida', 'agotada'
-**plan_suscripcion_enum:** 'basico', 'estandar', 'premium', 'enterprise'
-**estado_suscripcion_enum:** 'activa', 'vencida', 'cancelada', 'suspendida'
+**usuario_rol_enum:** 'cliente', 'barbero', 'admin'
+**estado_enum:** 'activo', 'inactivo'
+**categoria_servicio_enum:** 'corte', 'barba', 'tratamiento', 'combo'
+**estado_reserva_enum:** 'pendiente', 'confirmada', 'completada', 'cancelada'
 end note
 
-' === RELACIONES FÍSICAS CON CONSTRAINTS ===
-usuarios ||--o{ clientes : "id_usuario"
-usuarios ||--o{ administradores_barberia : "id_usuario"
-usuarios ||--o{ personal_barbero : "id_usuario"
+' === RELACIONES SIMPLIFICADAS ===
+usuarios ||--o{ clientes : "puede_ser"
+usuarios ||--o{ barberos : "puede_ser"
+usuarios ||--o{ barberias : "administra"
 
-administradores_barberia ||--o{ barberias : "id_admin"
+barberias ||--o{ barberos : "emplea"
+barberias ||--o{ servicios : "ofrece"
+barberias ||--o{ promociones : "publica"
 
-personal_barbero ||--o{ barberos : "id_personal"
-barberias ||--o{ barberos : "id_barberia"
+barberos ||--o{ barbero_servicios : "puede_realizar"
+servicios ||--o{ barbero_servicios : "asignado_a"
 
-barberias ||--o{ servicios : "id_barberia"
-servicios ||--o{ precios_servicio : "id_servicio"
+clientes ||--o{ reservas : "realiza"
+barberos ||--o{ reservas : "atiende"
+servicios ||--o{ reservas : "es_reservado"
 
-barberos ||--o{ barberos_servicios : "id_barbero"
-servicios ||--o{ barberos_servicios : "id_servicio"
-
-barberos ||--o{ horarios_barbero : "id_barbero"
-
-clientes ||--o{ reservas : "id_cliente"
-barberos_servicios ||--o{ reservas : "id_asignacion"
-
-reservas ||--|| calificaciones : "id_reserva"
-
-barberias ||--o{ promociones : "id_barberia"
-barberias ||--|| suscripciones : "id_barberia"
+reservas ||--o| calificaciones : "puede_tener"
 
 note bottom
-  **MODELO FÍSICO - IMPLEMENTACIÓN POSTGRESQL**
+  **MODELO FÍSICO SIMPLIFICADO - POSTGRESQL**
   
-  **Características del Modelo Físico:**
-  • Tipos de datos específicos de PostgreSQL
-  • Constraints detallados (CHECK, UNIQUE, FK)
+  **Objetivo:** Gestión eficiente de servicios de barbería, reservas, 
+  usuarios y promociones, facilitando la conexión entre barberos y clientes.
+  
+  **Características Simplificadas:**
+  • Estructura mínima pero funcional
+  • Enfoque en funcionalidades core
+  • Integridad referencial garantizada
   • Índices optimizados para consultas frecuentes
-  • Campos de auditoría (created_at, updated_at)
-  • Triggers implícitos para logs automáticos
-  • Particionamiento por fecha en logs
-  • Campos calculados (GENERATED)
-  • Índices compuestos para consultas complejas
-  • Búsqueda full-text con GIN
-  • Soporte JSONB para flexibilidad
-  • Tipos enumerados para integridad
-  • Optimización de consultas geoespaciales
+  • Constraints de negocio esenciales
+  • Tipos enumerados simplificados
+  • Sin redundancias innecesarias
   
-  **Estrategias de Rendimiento:**
-  • Índices parciales en estados activos
-  • Campos desnormalizados para métricas
-  • Particionamiento en tablas grandes
-  • Compresión en campos históricos
+  **Entidades Core:**
+  • usuarios (base de autenticación)
+  • clientes (datos específicos del cliente)
+  • barberias (establecimientos)
+  • barberos (especialistas)
+  • servicios (catálogo por barbería)
+  • reservas (citas y gestión)
+  • promociones (ofertas)
+  • calificaciones (feedback)
+  
+  **Beneficios de Simplificación:**
+  • Menos complejidad de mantenimiento
+  • Mejor rendimiento en consultas
+  • Estructura clara y escalable
+  • Facilita desarrollo e integración
+  • Cumple todos los objetivos principales
 end note
 
 @enduml

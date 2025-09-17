@@ -159,16 +159,6 @@ class niveles_acceso <<lookup>> {
     descripcion
 }
 
-class personal_barbero <<3FN>> {
-    +id_personal: PK
-    --
-    id_persona: FK NN
-    codigo_personal: AK
-    especialidad_id: FK
-    experiencia_años: NN
-    certificaciones_json
-}
-
 class especialidades <<lookup>> {
     +id_especialidad: PK
     --
@@ -254,9 +244,12 @@ class horarios_operacion <<3FN>> {
 class barberos <<3FN>> {
     +id_barbero: PK
     --
-    id_personal: FK NN
+    id_persona: FK NN
     id_barberia: FK NN
     codigo_empleado: AK NN
+    especialidad_id: FK
+    experiencia_años: NN
+    certificaciones_json
     fecha_ingreso: NN
     fecha_salida
     estado_barbero_id: FK NN
@@ -314,6 +307,8 @@ class servicios <<3FN>> {
     descripcion
     categoria_id: FK NN
     duracion_minutos: NN
+    precio: NN
+    moneda_id: FK NN
     estado_servicio_id: FK NN
 }
 
@@ -334,17 +329,6 @@ class estados_servicio <<lookup>> {
     nombre_estado: NN
     descripcion
     disponible_reserva: NN
-}
-
-class precios_servicio <<3FN>> {
-    +id_precio: PK
-    --
-    id_servicio: FK NN
-    precio: NN
-    fecha_inicio_vigencia: NN
-    fecha_fin_vigencia
-    moneda_id: FK NN
-    activo: NN
 }
 
 class monedas <<lookup>> {
@@ -582,65 +566,6 @@ class aplicaciones_promocion <<3FN>> {
     fecha_aplicacion: NN
 }
 
-' === SUSCRIPCIONES Y PLANES ===
-
-class suscripciones <<3FN>> {
-    +id_suscripcion: PK
-    --
-    id_barberia: FK NN
-    plan_id: FK NN
-    fecha_inicio: NN
-    fecha_fin: NN
-    estado_suscripcion_id: FK NN
-}
-
-class planes_suscripcion <<lookup>> {
-    +id_plan: PK
-    --
-    codigo_plan: AK NN
-    nombre_plan: NN
-    descripcion: NN
-    precio_mensual: NN
-    duracion_meses: NN
-}
-
-class estados_suscripcion <<lookup>> {
-    +id_estado: PK
-    --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    permite_facturacion: NN
-}
-
-class caracteristicas_plan <<3FN>> {
-    +plan_id: PK FK
-    +caracteristica_id: PK FK
-    --
-    valor_caracteristica: NN
-    limite_numerico
-}
-
-class tipos_caracteristica <<lookup>> {
-    +id_caracteristica: PK
-    --
-    codigo_caracteristica: AK NN
-    nombre_caracteristica: NN
-    tipo_dato: NN
-    unidad_medida
-}
-
-class facturacion_suscripcion <<3FN>> {
-    +id_factura: PK
-    --
-    id_suscripcion: FK NN
-    periodo_facturado: NN
-    monto: NN
-    estado_factura_id: FK NN
-    fecha_emision: NN
-    fecha_vencimiento: NN
-}
-
 ' === RELACIONES REFERENCIALES NORMALIZADAS ===
 
 ' Sistema de autenticación
@@ -690,8 +615,7 @@ horarios_barbero }o--|| tipos_horario
 barberias ||--o{ servicios
 servicios }o--|| categorias_servicio
 servicios }o--|| estados_servicio
-servicios ||--o{ precios_servicio
-precios_servicio }o--|| monedas
+servicios }o--|| monedas
 servicios ||--|| detalles_servicio
 
 ' Asignaciones
@@ -728,14 +652,6 @@ promociones ||--|| configuracion_promocion
 promociones ||--|| vigencia_promocion
 promociones ||--o{ aplicaciones_promocion
 aplicaciones_promocion }o--|| reservas
-
-' Suscripciones
-barberias ||--|| suscripciones
-suscripciones }o--|| planes_suscripcion
-suscripciones }o--|| estados_suscripcion
-planes_suscripcion ||--o{ caracteristicas_plan
-caracteristicas_plan }o--|| tipos_caracteristica
-suscripciones ||--o{ facturacion_suscripcion
 
 note bottom
   **MODELO LÓGICO NORMALIZADO - TERCERA FORMA NORMAL (3FN)**

@@ -32,15 +32,17 @@ entity AdministradorBarberia {
     nivel_acceso
 }
 
-entity PersonalBarbero {
+entity Barbero {
     nombre_completo
     email
     telefono
     dni
     especialidad
     experiencia
+    codigo_empleado
+    fecha_ingreso
+    estado_laboral
 }
-
 entity Barberia {
     nombre
     descripcion
@@ -53,6 +55,7 @@ entity Servicio {
     nombre
     descripcion
     duracion
+    precio
     categoria
 }
 
@@ -64,15 +67,6 @@ entity Promocion {
 }
 
 ' === ENTIDADES DÉBILES ===
-entity Barbero {
-    codigo_empleado
-    fecha_ingreso
-    estado_laboral
-}
-note right of Barbero
-  Entidad débil: depende
-  de PersonalBarbero y Barberia
-end note
 
 entity Reserva {
     fecha_hora
@@ -108,27 +102,6 @@ note right of HorarioDisponibilidad
   de Barbero
 end note
 
-entity PrecioServicio {
-    precio
-    fecha_vigencia
-}
-note right of PrecioServicio
-  Entidad débil: depende
-  de Servicio
-end note
-
-entity Suscripcion {
-    tipo_plan
-    fecha_inicio
-    fecha_fin
-    monto
-    estado
-}
-note right of Suscripcion
-  Entidad débil: depende
-  de Barberia
-end note
-
 ' === RELACIONES ===
 entity AsignacionServicio {
     fecha_asignacion
@@ -142,19 +115,16 @@ end note
 ' === RELACIONES BINARIAS ===
 Usuario ||--o{ Cliente : "se_registra_como"
 Usuario ||--o{ AdministradorBarberia : "se_registra_como"
-Usuario ||--o{ PersonalBarbero : "se_registra_como"
+Usuario ||--o{ Barbero : "se_registra_como"
 
 AdministradorBarberia ||--o{ Barberia : "administra"
 
-PersonalBarbero ||--o{ Barbero : "trabaja_como"
 Barberia ||--o{ Barbero : "emplea"
 
 Barberia ||--o{ Servicio : "ofrece"
 Barberia ||--o{ Promocion : "publica"
-Barberia ||--|| Suscripcion : "tiene"
 
 Barbero ||--o{ HorarioDisponibilidad : "define"
-Servicio ||--o{ PrecioServicio : "tiene"
 
 ' === RELACIÓN TERNARIA CLAVE ===
 Barbero }o--o{ AsignacionServicio : "puede_realizar"
