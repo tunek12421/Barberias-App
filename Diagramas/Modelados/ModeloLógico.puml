@@ -1,0 +1,214 @@
+@startuml modelo_logico
+skinparam backgroundColor #FFFFFE
+skinparam class {
+    BackgroundColor #E1F5E1
+    BorderColor #4CAF50
+    ArrowColor #4CAF50
+}
+
+title Modelo Lógico - Esquema Relacional
+
+class usuarios {
+    <<table>>
+    +id_usuario: INT <<PK>>
+    --
+    email: VARCHAR(100) <<UNIQUE>>
+    password_hash: VARCHAR(255)
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    fecha_registro: TIMESTAMP
+    estado: ENUM('activo','inactivo','suspendido')
+    ultimo_acceso: TIMESTAMP
+    intentos_fallidos: INT
+}
+
+class roles {
+    <<table>>
+    +id_rol: INT <<PK>>
+    --
+    nombre_rol: VARCHAR(30) <<UNIQUE>>
+    descripcion: VARCHAR(255)
+}
+
+class usuarios_roles {
+    <<table>>
+    +id_usuario: INT <<FK>>
+    +id_rol: INT <<FK>>
+    --
+    fecha_asignacion: TIMESTAMP
+}
+
+class barberias {
+    <<table>>
+    +id_barberia: INT <<PK>>
+    --
+    id_admin: INT <<FK>>
+    nombre: VARCHAR(100)
+    descripcion: TEXT
+    direccion: VARCHAR(255)
+    latitud: DECIMAL(10,8)
+    longitud: DECIMAL(11,8)
+    telefono: VARCHAR(20)
+    email: VARCHAR(100)
+    horario_apertura: TIME
+    horario_cierre: TIME
+    estado: ENUM('pendiente','activa','suspendida')
+    fecha_registro: TIMESTAMP
+    logo_url: VARCHAR(500)
+    banner_url: VARCHAR(500)
+    tema_interfaz: VARCHAR(50)
+    calificacion_promedio: DECIMAL(3,2)
+    total_calificaciones: INT
+}
+
+class barberos {
+    <<table>>
+    +id_barbero: INT <<PK>>
+    --
+    id_usuario: INT <<FK>>
+    id_barberia: INT <<FK>>
+    especialidad: VARCHAR(100)
+    experiencia_años: INT
+    foto_url: VARCHAR(500)
+    biografia: TEXT
+    estado: ENUM('activo','inactivo','vacaciones')
+    calificacion_promedio: DECIMAL(3,2)
+    total_servicios: INT
+}
+
+class servicios {
+    <<table>>
+    +id_servicio: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    nombre: VARCHAR(100)
+    descripcion: TEXT
+    duracion_minutos: INT
+    precio: DECIMAL(10,2)
+    categoria: VARCHAR(50)
+    estado: ENUM('activo','inactivo')
+    fecha_creacion: TIMESTAMP
+}
+
+class reservas {
+    <<table>>
+    +id_reserva: INT <<PK>>
+    --
+    id_cliente: INT <<FK>>
+    id_barbero: INT <<FK>>
+    id_servicio: INT <<FK>>
+    id_promocion: INT <<FK>> <<NULL>>
+    fecha_hora: TIMESTAMP
+    estado: ENUM('pendiente','confirmada','completada','cancelada')
+    notas: TEXT
+    precio_final: DECIMAL(10,2)
+    fecha_creacion: TIMESTAMP
+    fecha_actualizacion: TIMESTAMP
+}
+
+class calificaciones {
+    <<table>>
+    +id_calificacion: INT <<PK>>
+    --
+    id_reserva: INT <<FK>> <<UNIQUE>>
+    id_cliente: INT <<FK>>
+    id_barbero: INT <<FK>>
+    id_barberia: INT <<FK>>
+    puntuacion_servicio: INT
+    puntuacion_barbero: INT
+    comentario: TEXT
+    fecha: TIMESTAMP
+}
+
+class promociones {
+    <<table>>
+    +id_promocion: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    titulo: VARCHAR(100)
+    descripcion: TEXT
+    tipo_descuento: ENUM('porcentaje','monto_fijo')
+    valor_descuento: DECIMAL(10,2)
+    fecha_inicio: DATE
+    fecha_fin: DATE
+    dias_validos: VARCHAR(20)
+    estado: ENUM('activa','inactiva','vencida')
+}
+
+class horarios {
+    <<table>>
+    +id_horario: INT <<PK>>
+    --
+    id_barbero: INT <<FK>>
+    dia_semana: INT
+    hora_inicio: TIME
+    hora_fin: TIME
+    disponible: BOOLEAN
+}
+
+class logs_sistema {
+    <<table>>
+    +id_log: BIGINT <<PK>>
+    --
+    id_usuario: INT <<FK>> <<NULL>>
+    tipo_evento: VARCHAR(50)
+    descripcion: TEXT
+    ip_direccion: VARCHAR(45)
+    user_agent: VARCHAR(255)
+    timestamp: TIMESTAMP
+    nivel: ENUM('info','warning','error','critical')
+}
+
+class suscripciones {
+    <<table>>
+    +id_suscripcion: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    tipo_plan: ENUM('basico','premium','enterprise')
+    fecha_inicio: DATE
+    fecha_fin: DATE
+    estado: ENUM('activa','vencida','cancelada')
+    monto: DECIMAL(10,2)
+    limite_barberos: INT
+    limite_servicios: INT
+}
+
+class notificaciones {
+    <<table>>
+    +id_notificacion: INT <<PK>>
+    --
+    id_usuario: INT <<FK>>
+    tipo: VARCHAR(50)
+    titulo: VARCHAR(100)
+    mensaje: TEXT
+    leida: BOOLEAN
+    fecha_envio: TIMESTAMP
+    fecha_lectura: TIMESTAMP <<NULL>>
+}
+
+' Relaciones
+usuarios ||--o{ usuarios_roles : tiene
+roles ||--o{ usuarios_roles : asignado_a
+usuarios ||--o{ barberias : administra
+usuarios ||--o{ barberos : es
+usuarios ||--o{ reservas : realiza
+usuarios ||--o{ calificaciones : hace
+usuarios ||--o{ logs_sistema : genera
+usuarios ||--o{ notificaciones : recibe
+
+barberias ||--o{ barberos : emplea
+barberias ||--o{ servicios : ofrece
+barberias ||--o{ promociones : publica
+barberias ||--|| suscripciones : tiene
+barberias ||--o{ calificaciones : recibe
+
+barberos ||--o{ reservas : atiende
+barberos ||--o{ horarios : tiene
+barberos ||--o{ calificaciones : recibe
+
+servicios ||--o{ reservas : incluido_en
+reservas ||--|| calificaciones : genera
+promociones ||--o{ reservas : aplica_a
+
+@enduml

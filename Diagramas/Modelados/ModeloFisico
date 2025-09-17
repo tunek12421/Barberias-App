@@ -1,0 +1,566 @@
+-- =====================================================
+-- MODELO FÍSICO - PLATAFORMA DE BARBERÍAS
+-- SGBD: MySQL 8.0 / MariaDB 10.6+
+-- =====================================================
+
+-- Configuración inicial
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+SET collation_connection = 'utf8mb4_unicode_ci';
+SET FOREIGN_KEY_CHECKS = 0;
+SET SQL_MODE = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- Crear base de datos
+CREATE DATABASE IF NOT EXISTS `barberia_db`
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE `barberia_db`;
+
+-- =====================================================
+-- TABLAS DE LOOKUP / CATÁLOGOS
+-- =====================================================
+
+CREATE TABLE `estados_usuario` (
+  `id_estado` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre_estado` VARCHAR(20) NOT NULL,
+  `descripcion` VARCHAR(100),
+  PRIMARY KEY (`id_estado`),
+  UNIQUE INDEX `uk_nombre_estado` (`nombre_estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `estados_barberia` (
+  `id_estado` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre_estado` VARCHAR(20) NOT NULL,
+  `descripcion` VARCHAR(100),
+  PRIMARY KEY (`id_estado`),
+  UNIQUE INDEX `uk_nombre_estado` (`nombre_estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `estados_reserva` (
+  `id_estado` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre_estado` VARCHAR(20) NOT NULL,
+  `descripcion` VARCHAR(100),
+  `color_hex` VARCHAR(7),
+  PRIMARY KEY (`id_estado`),
+  UNIQUE INDEX `uk_nombre_estado` (`nombre_estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `metodos_pago` (
+  `id_metodo` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre_metodo` VARCHAR(30) NOT NULL,
+  `activo` BOOLEAN DEFAULT TRUE,
+  PRIMARY KEY (`id_metodo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLAS PRINCIPALES
+-- =====================================================
+
+-- Tabla de usuarios
+CREATE TABLE `usuarios` (
+  `id_usuario` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(100) NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `fecha_registro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ultimo_acceso` TIMESTAMP NULL DEFAULT NULL,
+  `intentos_fallidos` TINYINT UNSIGNED DEFAULT 0,
+  `token_recuperacion` VARCHAR(255) NULL,
+  `token_expiracion` TIMESTAMP NULL,
+  `estado_usuario_id` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE INDEX `uk_email` (`email`),
+  INDEX `idx_estado` (`estado_usuario_id`),
+  INDEX `idx_ultimo_acceso` (`ultimo_acceso`),
+  FOREIGN KEY (`estado_usuario_id`) REFERENCES `estados_usuario`(`id_estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de datos personales
+CREATE TABLE `datos_personales` (
+  `id_usuario` INT UNSIGNED NOT NULL,
+  `nombre` VARCHAR(50) NOT NULL,
+  `apellido` VARCHAR(50) NOT NULL,
+  `telefono` VARCHAR(20),
+  `fecha_nacimiento` DATE,
+  `dni` VARCHAR(20),
+  `direccion` VARCHAR(255),
+  `foto_perfil_url` VARCHAR(500),
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_usuario`),
+  INDEX `idx_nombre_completo` (`nombre`, `apellido`),
+  FOREIGN KEY (`id_usuario`) REFERENCES `usuarios`(`id_usuario`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de roles
+CREATE TABLE `roles` (
+  `id_rol` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre_rol` VARCHAR(30) NOT NULL,
+  `descripcion` VARCHAR(255),
+  PRIMARY KEY (`id_rol`),
+  UNIQUE INDEX `uk_nombre_rol` (`nombre_rol`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de relación usuarios-roles
+CREATE TABLE `usuarios_roles` (
+  `id_usuario` INT UNSIGNED NOT NULL,
+  `id_rol` TINYINT UNSIGNED NOT NULL,
+  `fecha_asignacion` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `asignado_por` INT UNSIGNED,
+  PRIMARY KEY (`id_usuario`, `id_rol`),
+  INDEX `idx_rol` (`id_rol`),
+  FOREIGN KEY (`id_usuario`) REFERENCES `usuarios`(`id_usuario`) ON DELETE CASCADE,
+  FOREIGN KEY (`id_rol`) REFERENCES `roles`(`id_rol`),
+  FOREIGN KEY (`asignado_por`) REFERENCES `usuarios`(`id_usuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de barberías
+CREATE TABLE `barberias` (
+  `id_barberia` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_admin` INT UNSIGNED NOT NULL,
+  `codigo_barberia` VARCHAR(20) NOT NULL,
+  `nombre` VARCHAR(100) NOT NULL,
+  `descripcion` TEXT,
+  `telefono` VARCHAR(20),
+  `email` VARCHAR(100),
+  `estado_barberia_id` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  `fecha_registro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_aprobacion` TIMESTAMP NULL,
+  `aprobado_por` INT UNSIGNED,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_barberia`),
+  UNIQUE INDEX `uk_codigo` (`codigo_barberia`),
+  INDEX `idx_admin` (`id_admin`),
+  INDEX `idx_estado` (`estado_barberia_id`),
+  INDEX `idx_nombre` (`nombre`),
+  FULLTEXT INDEX `ft_nombre_desc` (`nombre`, `descripcion`),
+  FOREIGN KEY (`id_admin`) REFERENCES `usuarios`(`id_usuario`),
+  FOREIGN KEY (`estado_barberia_id`) REFERENCES `estados_barberia`(`id_estado`),
+  FOREIGN KEY (`aprobado_por`) REFERENCES `usuarios`(`id_usuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de ubicaciones de barbería
+CREATE TABLE `ubicaciones_barberia` (
+  `id_barberia` INT UNSIGNED NOT NULL,
+  `direccion` VARCHAR(255) NOT NULL,
+  `ciudad` VARCHAR(100) NOT NULL DEFAULT 'Cochabamba',
+  `zona` VARCHAR(100),
+  `latitud` DECIMAL(10,8),
+  `longitud` DECIMAL(11,8),
+  `referencia` TEXT,
+  PRIMARY KEY (`id_barberia`),
+  INDEX `idx_ciudad_zona` (`ciudad`, `zona`),
+  INDEX `idx_coordenadas` (`latitud`, `longitud`),
+  FOREIGN KEY (`id_barberia`) REFERENCES `barberias`(`id_barberia`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de barberos
+CREATE TABLE `barberos` (
+  `id_barbero` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT UNSIGNED NOT NULL,
+  `id_barberia` INT UNSIGNED NOT NULL,
+  `codigo_empleado` VARCHAR(20) NOT NULL,
+  `fecha_ingreso` DATE NOT NULL,
+  `fecha_salida` DATE,
+  `estado` ENUM('activo', 'inactivo', 'vacaciones', 'suspendido') DEFAULT 'activo',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_barbero`),
+  UNIQUE INDEX `uk_usuario` (`id_usuario`),
+  UNIQUE INDEX `uk_codigo_empleado` (`id_barberia`, `codigo_empleado`),
+  INDEX `idx_barberia` (`id_barberia`),
+  INDEX `idx_estado` (`estado`),
+  FOREIGN KEY (`id_usuario`) REFERENCES `usuarios`(`id_usuario`),
+  FOREIGN KEY (`id_barberia`) REFERENCES `barberias`(`id_barberia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de servicios
+CREATE TABLE `servicios` (
+  `id_servicio` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_barberia` INT UNSIGNED NOT NULL,
+  `codigo_servicio` VARCHAR(20) NOT NULL,
+  `nombre` VARCHAR(100) NOT NULL,
+  `descripcion` TEXT,
+  `duracion_minutos` SMALLINT UNSIGNED NOT NULL,
+  `precio_base` DECIMAL(10,2) NOT NULL,
+  `categoria` VARCHAR(50),
+  `requiere_cita` BOOLEAN DEFAULT TRUE,
+  `estado` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_servicio`),
+  UNIQUE INDEX `uk_codigo_servicio` (`id_barberia`, `codigo_servicio`),
+  INDEX `idx_barberia` (`id_barberia`),
+  INDEX `idx_categoria` (`categoria`),
+  INDEX `idx_estado` (`estado`),
+  FOREIGN KEY (`id_barberia`) REFERENCES `barberias`(`id_barberia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de reservas
+CREATE TABLE `reservas` (
+  `id_reserva` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `codigo_reserva` VARCHAR(20) NOT NULL,
+  `id_cliente` INT UNSIGNED NOT NULL,
+  `id_barbero` INT UNSIGNED NOT NULL,
+  `id_servicio` INT UNSIGNED NOT NULL,
+  `fecha_hora` TIMESTAMP NOT NULL,
+  `duracion_total` SMALLINT UNSIGNED NOT NULL,
+  `precio_original` DECIMAL(10,2) NOT NULL,
+  `descuento_aplicado` DECIMAL(10,2) DEFAULT 0,
+  `precio_final` DECIMAL(10,2) NOT NULL,
+  `estado_reserva_id` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  `notas_cliente` TEXT,
+  `notas_barbero` TEXT,
+  `fecha_confirmacion` TIMESTAMP NULL,
+  `fecha_completada` TIMESTAMP NULL,
+  `fecha_cancelacion` TIMESTAMP NULL,
+  `motivo_cancelacion` VARCHAR(255),
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_reserva`),
+  UNIQUE INDEX `uk_codigo_reserva` (`codigo_reserva`),
+  INDEX `idx_cliente` (`id_cliente`),
+  INDEX `idx_barbero` (`id_barbero`),
+  INDEX `idx_servicio` (`id_servicio`),
+  INDEX `idx_fecha_hora` (`fecha_hora`),
+  INDEX `idx_estado` (`estado_reserva_id`),
+  INDEX `idx_fecha_estado` (`fecha_hora`, `estado_reserva_id`),
+  FOREIGN KEY (`id_cliente`) REFERENCES `usuarios`(`id_usuario`),
+  FOREIGN KEY (`id_barbero`) REFERENCES `barberos`(`id_barbero`),
+  FOREIGN KEY (`id_servicio`) REFERENCES `servicios`(`id_servicio`),
+  FOREIGN KEY (`estado_reserva_id`) REFERENCES `estados_reserva`(`id_estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+PARTITION BY RANGE (YEAR(fecha_hora)) (
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION p2026 VALUES LESS THAN (2027),
+    PARTITION p_future VALUES LESS THAN MAXVALUE
+);
+
+-- Tabla de calificaciones
+CREATE TABLE `calificaciones` (
+  `id_calificacion` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_reserva` BIGINT UNSIGNED NOT NULL,
+  `id_cliente` INT UNSIGNED NOT NULL,
+  `id_barbero` INT UNSIGNED NOT NULL,
+  `id_barberia` INT UNSIGNED NOT NULL,
+  `puntuacion_servicio` TINYINT UNSIGNED NOT NULL CHECK (puntuacion_servicio BETWEEN 1 AND 5),
+  `puntuacion_barbero` TINYINT UNSIGNED NOT NULL CHECK (puntuacion_barbero BETWEEN 1 AND 5),
+  `puntuacion_barberia` TINYINT UNSIGNED NOT NULL CHECK (puntuacion_barberia BETWEEN 1 AND 5),
+  `comentario` TEXT,
+  `fecha` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `visible` BOOLEAN DEFAULT TRUE,
+  PRIMARY KEY (`id_calificacion`),
+  UNIQUE INDEX `uk_reserva` (`id_reserva`),
+  INDEX `idx_cliente` (`id_cliente`),
+  INDEX `idx_barbero` (`id_barbero`),
+  INDEX `idx_barberia` (`id_barberia`),
+  INDEX `idx_fecha` (`fecha`),
+  INDEX `idx_puntuaciones` (`puntuacion_servicio`, `puntuacion_barbero`, `puntuacion_barberia`),
+  FOREIGN KEY (`id_reserva`) REFERENCES `reservas`(`id_reserva`),
+  FOREIGN KEY (`id_cliente`) REFERENCES `usuarios`(`id_usuario`),
+  FOREIGN KEY (`id_barbero`) REFERENCES `barberos`(`id_barbero`),
+  FOREIGN KEY (`id_barberia`) REFERENCES `barberias`(`id_barberia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de logs del sistema
+CREATE TABLE `logs_sistema` (
+  `id_log` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT UNSIGNED,
+  `tipo_evento` VARCHAR(50) NOT NULL,
+  `nivel` ENUM('debug', 'info', 'warning', 'error', 'critical') NOT NULL DEFAULT 'info',
+  `descripcion` TEXT NOT NULL,
+  `datos_json` JSON,
+  `ip_direccion` VARCHAR(45),
+  `user_agent` VARCHAR(255),
+  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_log`),
+  INDEX `idx_usuario` (`id_usuario`),
+  INDEX `idx_timestamp` (`timestamp`),
+  INDEX `idx_tipo_nivel` (`tipo_evento`, `nivel`),
+  INDEX `idx_nivel_timestamp` (`nivel`, `timestamp`),
+  FOREIGN KEY (`id_usuario`) REFERENCES `usuarios`(`id_usuario`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+PARTITION BY RANGE (TO_DAYS(timestamp)) (
+    PARTITION p_old VALUES LESS THAN (TO_DAYS('2025-01-01')),
+    PARTITION p_2025_q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+    PARTITION p_2025_q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+    PARTITION p_2025_q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+    PARTITION p_2025_q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+    PARTITION p_future VALUES LESS THAN MAXVALUE
+);
+
+-- =====================================================
+-- VISTAS
+-- =====================================================
+
+CREATE OR REPLACE VIEW `v_reservas_activas` AS
+SELECT 
+    r.id_reserva,
+    r.codigo_reserva,
+    r.fecha_hora,
+    u.email as cliente_email,
+    CONCAT(dp.nombre, ' ', dp.apellido) as cliente_nombre,
+    b.nombre as barberia_nombre,
+    CONCAT(dpb.nombre, ' ', dpb.apellido) as barbero_nombre,
+    s.nombre as servicio,
+    r.precio_final,
+    er.nombre_estado as estado
+FROM reservas r
+JOIN usuarios u ON r.id_cliente = u.id_usuario
+JOIN datos_personales dp ON u.id_usuario = dp.id_usuario
+JOIN barberos br ON r.id_barbero = br.id_barbero
+JOIN usuarios ub ON br.id_usuario = ub.id_usuario
+JOIN datos_personales dpb ON ub.id_usuario = dpb.id_usuario
+JOIN barberias b ON br.id_barberia = b.id_barberia
+JOIN servicios s ON r.id_servicio = s.id_servicio
+JOIN estados_reserva er ON r.estado_reserva_id = er.id_estado
+WHERE r.fecha_hora >= CURDATE()
+  AND r.estado_reserva_id IN (1, 2); -- pendiente, confirmada
+
+CREATE OR REPLACE VIEW `v_metricas_barberia` AS
+SELECT 
+    b.id_barberia,
+    b.nombre,
+    COUNT(DISTINCT r.id_cliente) as total_clientes,
+    COUNT(r.id_reserva) as total_reservas,
+    SUM(CASE WHEN r.estado_reserva_id = 3 THEN 1 ELSE 0 END) as reservas_completadas,
+    SUM(CASE WHEN r.estado_reserva_id = 4 THEN 1 ELSE 0 END) as reservas_canceladas,
+    AVG(c.puntuacion_barberia) as calificacion_promedio,
+    COUNT(c.id_calificacion) as total_calificaciones,
+    SUM(CASE WHEN r.estado_reserva_id = 3 THEN r.precio_final ELSE 0 END) as ingresos_totales
+FROM barberias b
+LEFT JOIN barberos br ON b.id_barberia = br.id_barberia
+LEFT JOIN reservas r ON br.id_barbero = r.id_barbero
+LEFT JOIN calificaciones c ON b.id_barberia = c.id_barberia
+GROUP BY b.id_barberia, b.nombre;
+
+-- =====================================================
+-- STORED PROCEDURES
+-- =====================================================
+
+DELIMITER //
+
+CREATE PROCEDURE `sp_crear_reserva`(
+    IN p_cliente_id INT,
+    IN p_barbero_id INT,
+    IN p_servicio_id INT,
+    IN p_fecha_hora TIMESTAMP,
+    IN p_notas TEXT
+)
+BEGIN
+    DECLARE v_precio DECIMAL(10,2);
+    DECLARE v_duracion INT;
+    DECLARE v_codigo VARCHAR(20);
+    DECLARE v_reserva_id BIGINT;
+    
+    -- Iniciar transacción
+    START TRANSACTION;
+    
+    -- Obtener precio y duración del servicio
+    SELECT precio_base, duracion_minutos 
+    INTO v_precio, v_duracion
+    FROM servicios 
+    WHERE id_servicio = p_servicio_id AND estado = TRUE;
+    
+    -- Generar código único
+    SET v_codigo = CONCAT('RES', DATE_FORMAT(NOW(), '%Y%m%d'), FLOOR(RAND() * 10000));
+    
+    -- Insertar reserva
+    INSERT INTO reservas (
+        codigo_reserva, id_cliente, id_barbero, id_servicio,
+        fecha_hora, duracion_total, precio_original, precio_final,
+        notas_cliente, estado_reserva_id
+    ) VALUES (
+        v_codigo, p_cliente_id, p_barbero_id, p_servicio_id,
+        p_fecha_hora, v_duracion, v_precio, v_precio,
+        p_notas, 1
+    );
+    
+    SET v_reserva_id = LAST_INSERT_ID();
+    
+    -- Log del evento
+    INSERT INTO logs_sistema (id_usuario, tipo_evento, nivel, descripcion, datos_json)
+    VALUES (p_cliente_id, 'RESERVA_CREADA', 'info', 
+            CONCAT('Nueva reserva creada: ', v_codigo),
+            JSON_OBJECT('reserva_id', v_reserva_id, 'barbero_id', p_barbero_id));
+    
+    COMMIT;
+    
+    SELECT v_reserva_id as reserva_id, v_codigo as codigo_reserva;
+END//
+
+CREATE PROCEDURE `sp_actualizar_metricas_barberia`(
+    IN p_barberia_id INT
+)
+BEGIN
+    DECLARE v_calificacion DECIMAL(3,2);
+    DECLARE v_total_cal INT;
+    DECLARE v_total_res INT;
+    DECLARE v_total_cli INT;
+    
+    -- Calcular métricas
+    SELECT 
+        AVG(c.puntuacion_barberia),
+        COUNT(DISTINCT c.id_calificacion),
+        COUNT(DISTINCT r.id_reserva),
+        COUNT(DISTINCT r.id_cliente)
+    INTO v_calificacion, v_total_cal, v_total_res, v_total_cli
+    FROM barberias b
+    LEFT JOIN barberos br ON b.id_barberia = br.id_barberia
+    LEFT JOIN reservas r ON br.id_barbero = r.id_barbero AND r.estado_reserva_id = 3
+    LEFT JOIN calificaciones c ON b.id_barberia = c.id_barberia
+    WHERE b.id_barberia = p_barberia_id
+    GROUP BY b.id_barberia;
+    
+    -- Actualizar o insertar métricas
+    INSERT INTO metricas_barberia (
+        id_barberia, calificacion_promedio, total_calificaciones,
+        total_reservas, total_clientes, ultima_actualizacion
+    ) VALUES (
+        p_barberia_id, COALESCE(v_calificacion, 0), COALESCE(v_total_cal, 0),
+        COALESCE(v_total_res, 0), COALESCE(v_total_cli, 0), NOW()
+    )
+    ON DUPLICATE KEY UPDATE
+        calificacion_promedio = COALESCE(v_calificacion, calificacion_promedio),
+        total_calificaciones = COALESCE(v_total_cal, total_calificaciones),
+        total_reservas = COALESCE(v_total_res, total_reservas),
+        total_clientes = COALESCE(v_total_cli, total_clientes),
+        ultima_actualizacion = NOW();
+END//
+
+DELIMITER ;
+
+-- =====================================================
+-- TRIGGERS
+-- =====================================================
+
+DELIMITER //
+
+CREATE TRIGGER `trg_validar_horario_reserva` 
+BEFORE INSERT ON `reservas`
+FOR EACH ROW
+BEGIN
+    DECLARE v_hora_apertura TIME;
+    DECLARE v_hora_cierre TIME;
+    DECLARE v_dia_semana INT;
+    
+    SET v_dia_semana = DAYOFWEEK(NEW.fecha_hora);
+    
+    -- Verificar horario de la barbería
+    SELECT hora_apertura, hora_cierre 
+    INTO v_hora_apertura, v_hora_cierre
+    FROM horarios_barberia hb
+    JOIN barberos b ON b.id_barberia = hb.id_barberia
+    WHERE b.id_barbero = NEW.id_barbero
+      AND hb.dia_semana = v_dia_semana
+      AND hb.cerrado = FALSE;
+    
+    IF v_hora_apertura IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'La barbería está cerrada en el horario seleccionado';
+    END IF;
+    
+    IF TIME(NEW.fecha_hora) < v_hora_apertura OR 
+       TIME(NEW.fecha_hora) > v_hora_cierre THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'El horario seleccionado está fuera del horario de atención';
+    END IF;
+END//
+
+CREATE TRIGGER `trg_actualizar_metricas_calificacion`
+AFTER INSERT ON `calificaciones`
+FOR EACH ROW
+BEGIN
+    -- Actualizar métricas de la barbería
+    CALL sp_actualizar_metricas_barberia(NEW.id_barberia);
+    
+    -- Actualizar calificación promedio del barbero
+    UPDATE barberos b
+    SET b.calificacion_promedio = (
+        SELECT AVG(c.puntuacion_barbero)
+        FROM calificaciones c
+        WHERE c.id_barbero = NEW.id_barbero
+    )
+    WHERE b.id_barbero = NEW.id_barbero;
+END//
+
+DELIMITER ;
+
+-- =====================================================
+-- ÍNDICES ADICIONALES PARA OPTIMIZACIÓN
+-- =====================================================
+
+-- Índices para búsquedas geográficas
+CREATE SPATIAL INDEX `sp_ubicacion` ON `ubicaciones_barberia` (`latitud`, `longitud`);
+
+-- Índices para reportes
+CREATE INDEX `idx_reservas_fecha_barberia` ON `reservas` (`fecha_hora`, `id_barbero`);
+CREATE INDEX `idx_calificaciones_barberia_fecha` ON `calificaciones` (`id_barberia`, `fecha`);
+
+-- =====================================================
+-- INSERCIÓN DE DATOS INICIALES
+-- =====================================================
+
+-- Estados de usuario
+INSERT INTO `estados_usuario` (`nombre_estado`, `descripcion`) VALUES
+('activo', 'Usuario activo'),
+('inactivo', 'Usuario inactivo'),
+('suspendido', 'Usuario suspendido'),
+('pendiente', 'Pendiente de verificación');
+
+-- Estados de barbería
+INSERT INTO `estados_barberia` (`nombre_estado`, `descripcion`) VALUES
+('pendiente', 'Pendiente de aprobación'),
+('activa', 'Barbería activa'),
+('suspendida', 'Barbería suspendida'),
+('inactiva', 'Barbería inactiva');
+
+-- Estados de reserva
+INSERT INTO `estados_reserva` (`nombre_estado`, `descripcion`, `color_hex`) VALUES
+('pendiente', 'Reserva pendiente de confirmación', '#FFA500'),
+('confirmada', 'Reserva confirmada', '#4CAF50'),
+('completada', 'Servicio completado', '#2196F3'),
+('cancelada', 'Reserva cancelada', '#F44336'),
+('no_asistió', 'Cliente no asistió', '#9E9E9E');
+
+-- Métodos de pago
+INSERT INTO `metodos_pago` (`nombre_metodo`) VALUES
+('efectivo'),
+('tarjeta_debito'),
+('tarjeta_credito'),
+('qr_bancario'),
+('transferencia');
+
+-- Roles
+INSERT INTO `roles` (`nombre_rol`, `descripcion`) VALUES
+('cliente', 'Usuario cliente de la plataforma'),
+('barbero', 'Barbero empleado'),
+('admin_barberia', 'Administrador de barbería'),
+('admin_sistema', 'Administrador del sistema');
+
+-- =====================================================
+-- CONFIGURACIÓN DE SEGURIDAD Y USUARIOS
+-- =====================================================
+
+-- Crear usuarios de base de datos
+CREATE USER IF NOT EXISTS 'barberia_app'@'localhost' IDENTIFIED BY 'SecurePass2025!';
+CREATE USER IF NOT EXISTS 'barberia_read'@'localhost' IDENTIFIED BY 'ReadOnly2025!';
+CREATE USER IF NOT EXISTS 'barberia_backup'@'localhost' IDENTIFIED BY 'Backup2025!';
+
+-- Asignar privilegios
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON barberia_db.* TO 'barberia_app'@'localhost';
+GRANT SELECT ON barberia_db.* TO 'barberia_read'@'localhost';
+GRANT SELECT, LOCK TABLES, SHOW VIEW ON barberia_db.* TO 'barberia_backup'@'localhost';
+
+FLUSH PRIVILEGES;
+
+-- Activar verificación de claves foráneas
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- =====================================================
+-- FIN DEL SCRIPT DE MODELO FÍSICO
+-- =====================================================

@@ -1,0 +1,160 @@
+@startuml modelo_conceptual
+!define ENTITY entity
+!define PRIMARY_KEY(x) <u>x</u>
+!define FOREIGN_KEY(x) <i>x</i>
+
+skinparam backgroundColor #FFFFFE
+skinparam entity {
+    BackgroundColor #E8F4FD
+    BorderColor #4A90E2
+}
+
+title Modelo Conceptual - Plataforma de Barberías
+
+' Entidades principales
+ENTITY Usuario {
+    PRIMARY_KEY(id_usuario)
+    --
+    email
+    contraseña
+    nombre
+    apellido
+    telefono
+    fecha_registro
+    estado
+}
+
+ENTITY Rol {
+    PRIMARY_KEY(id_rol)
+    --
+    nombre_rol
+    descripcion
+}
+
+ENTITY Barberia {
+    PRIMARY_KEY(id_barberia)
+    --
+    nombre
+    descripcion
+    direccion
+    telefono
+    email
+    horario_apertura
+    horario_cierre
+    estado
+    fecha_registro
+    logo_url
+    banner_url
+    tema_interfaz
+}
+
+ENTITY Barbero {
+    PRIMARY_KEY(id_barbero)
+    --
+    FOREIGN_KEY(id_usuario)
+    FOREIGN_KEY(id_barberia)
+    especialidad
+    experiencia_años
+    foto_url
+    biografia
+    estado
+}
+
+ENTITY Servicio {
+    PRIMARY_KEY(id_servicio)
+    --
+    FOREIGN_KEY(id_barberia)
+    nombre
+    descripcion
+    duracion_minutos
+    precio
+    estado
+}
+
+ENTITY Reserva {
+    PRIMARY_KEY(id_reserva)
+    --
+    FOREIGN_KEY(id_cliente)
+    FOREIGN_KEY(id_barbero)
+    FOREIGN_KEY(id_servicio)
+    fecha_hora
+    estado
+    notas
+    fecha_creacion
+}
+
+ENTITY Calificacion {
+    PRIMARY_KEY(id_calificacion)
+    --
+    FOREIGN_KEY(id_reserva)
+    FOREIGN_KEY(id_cliente)
+    FOREIGN_KEY(id_barbero)
+    puntuacion_servicio
+    puntuacion_barbero
+    comentario
+    fecha
+}
+
+ENTITY Promocion {
+    PRIMARY_KEY(id_promocion)
+    --
+    FOREIGN_KEY(id_barberia)
+    titulo
+    descripcion
+    descuento_porcentaje
+    fecha_inicio
+    fecha_fin
+    estado
+}
+
+ENTITY Horario {
+    PRIMARY_KEY(id_horario)
+    --
+    FOREIGN_KEY(id_barbero)
+    dia_semana
+    hora_inicio
+    hora_fin
+    disponible
+}
+
+ENTITY LogSistema {
+    PRIMARY_KEY(id_log)
+    --
+    FOREIGN_KEY(id_usuario)
+    tipo_evento
+    descripcion
+    ip_direccion
+    timestamp
+}
+
+ENTITY Suscripcion {
+    PRIMARY_KEY(id_suscripcion)
+    --
+    FOREIGN_KEY(id_barberia)
+    tipo_plan
+    fecha_inicio
+    fecha_fin
+    estado
+    monto
+}
+
+' Relaciones
+Usuario ||--o{ Rol : tiene
+Usuario ||--o{ Barbero : es
+Usuario ||--o{ Reserva : realiza
+Usuario ||--o{ Calificacion : hace
+Usuario ||--o{ LogSistema : genera
+
+Barberia ||--o{ Barbero : emplea
+Barberia ||--o{ Servicio : ofrece
+Barberia ||--o{ Promocion : publica
+Barberia ||--|| Suscripcion : tiene
+
+Barbero ||--o{ Reserva : atiende
+Barbero ||--o{ Horario : tiene
+Barbero ||--o{ Calificacion : recibe
+
+Servicio ||--o{ Reserva : incluido_en
+Reserva ||--|| Calificacion : genera
+
+@enduml

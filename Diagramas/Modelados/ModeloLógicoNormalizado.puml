@@ -1,0 +1,275 @@
+@startuml modelo_normalizado
+skinparam backgroundColor #FFFFFE
+skinparam class {
+    BackgroundColor #FFE6E6
+    BorderColor #E74C3C
+    ArrowColor #E74C3C
+}
+skinparam note {
+    BackgroundColor #FFF9E6
+    BorderColor #FFB300
+}
+
+title Modelo Lógico Normalizado - Tercera Forma Normal (3FN)
+
+' === ENTIDADES NORMALIZADAS ===
+
+class usuarios <<3FN>> {
+    +id_usuario: INT <<PK>>
+    --
+    email: VARCHAR(100) <<UNIQUE>>
+    password_hash: VARCHAR(255)
+    fecha_registro: TIMESTAMP
+    ultimo_acceso: TIMESTAMP
+    intentos_fallidos: INT
+    estado_usuario_id: INT <<FK>>
+}
+note right of usuarios
+  **1FN**: ✓ Valores atómicos
+  **2FN**: ✓ Sin dependencias parciales
+  **3FN**: ✓ Sin dependencias transitivas
+  - Separado datos personales
+  - Estado normalizado
+end note
+
+class datos_personales <<3FN>> {
+    +id_usuario: INT <<PK,FK>>
+    --
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    fecha_nacimiento: DATE
+    dni: VARCHAR(20)
+}
+
+class estados_usuario <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
+
+class roles <<3FN>> {
+    +id_rol: INT <<PK>>
+    --
+    nombre_rol: VARCHAR(30) <<UNIQUE>>
+    descripcion: VARCHAR(255)
+}
+
+class usuarios_roles <<3FN>> {
+    +id_usuario: INT <<PK,FK>>
+    +id_rol: INT <<PK,FK>>
+    --
+    fecha_asignacion: TIMESTAMP
+    asignado_por: INT <<FK>>
+}
+
+class barberias <<3FN>> {
+    +id_barberia: INT <<PK>>
+    --
+    id_admin: INT <<FK>>
+    nombre: VARCHAR(100)
+    descripcion: TEXT
+    telefono: VARCHAR(20)
+    email: VARCHAR(100)
+    estado_barberia_id: INT <<FK>>
+    fecha_registro: TIMESTAMP
+    suscripcion_activa_id: INT <<FK>>
+}
+note right of barberias
+  **Normalización aplicada**:
+  - Ubicación en tabla separada
+  - Horarios en tabla separada
+  - Apariencia en tabla separada
+  - Métricas en tabla separada
+end note
+
+class ubicaciones_barberia <<3FN>> {
+    +id_barberia: INT <<PK,FK>>
+    --
+    direccion: VARCHAR(255)
+    ciudad: VARCHAR(100)
+    zona: VARCHAR(100)
+    latitud: DECIMAL(10,8)
+    longitud: DECIMAL(11,8)
+    referencia: TEXT
+}
+
+class horarios_barberia <<3FN>> {
+    +id_barberia: INT <<PK,FK>>
+    +dia_semana: INT <<PK>>
+    --
+    hora_apertura: TIME
+    hora_cierre: TIME
+    cerrado: BOOLEAN
+}
+
+class apariencia_barberia <<3FN>> {
+    +id_barberia: INT <<PK,FK>>
+    --
+    logo_url: VARCHAR(500)
+    banner_url: VARCHAR(500)
+    color_primario: VARCHAR(7)
+    color_secundario: VARCHAR(7)
+    tema_id: INT <<FK>>
+}
+
+class temas_interfaz <<lookup>> {
+    +id_tema: INT <<PK>>
+    --
+    nombre_tema: VARCHAR(50)
+    configuracion_json: JSON
+}
+
+class metricas_barberia <<3FN>> {
+    +id_barberia: INT <<PK,FK>>
+    --
+    calificacion_promedio: DECIMAL(3,2)
+    total_calificaciones: INT
+    total_reservas: INT
+    total_clientes: INT
+    ultima_actualizacion: TIMESTAMP
+}
+
+class barberos <<3FN>> {
+    +id_barbero: INT <<PK>>
+    --
+    id_usuario: INT <<FK>> <<UNIQUE>>
+    id_barberia: INT <<FK>>
+    codigo_empleado: VARCHAR(20)
+    fecha_ingreso: DATE
+    estado_barbero_id: INT <<FK>>
+}
+
+class perfiles_barbero <<3FN>> {
+    +id_barbero: INT <<PK,FK>>
+    --
+    especialidad: VARCHAR(100)
+    experiencia_años: INT
+    foto_url: VARCHAR(500)
+    biografia: TEXT
+}
+
+class servicios <<3FN>> {
+    +id_servicio: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    id_categoria: INT <<FK>>
+    codigo_servicio: VARCHAR(20)
+    nombre: VARCHAR(100)
+    descripcion: TEXT
+    duracion_minutos: INT
+    estado: BOOLEAN
+}
+
+class categorias_servicio <<lookup>> {
+    +id_categoria: INT <<PK>>
+    --
+    nombre: VARCHAR(50)
+    descripcion: VARCHAR(255)
+    icono: VARCHAR(100)
+}
+
+class precios_servicio <<3FN>> {
+    +id_precio: INT <<PK>>
+    --
+    id_servicio: INT <<FK>>
+    precio: DECIMAL(10,2)
+    fecha_inicio: DATE
+    fecha_fin: DATE <<NULL>>
+    activo: BOOLEAN
+}
+note right of precios_servicio
+  **Historial de precios**:
+  Permite mantener registro
+  histórico de cambios de precio
+end note
+
+class reservas <<3FN>> {
+    +id_reserva: INT <<PK>>
+    --
+    codigo_reserva: VARCHAR(20) <<UNIQUE>>
+    id_cliente: INT <<FK>>
+    id_barbero: INT <<FK>>
+    fecha_hora: TIMESTAMP
+    estado_reserva_id: INT <<FK>>
+    fecha_creacion: TIMESTAMP
+}
+
+class detalles_reserva <<3FN>> {
+    +id_detalle: INT <<PK>>
+    +id_reserva: INT <<FK>>
+    --
+    id_servicio: INT <<FK>>
+    id_precio: INT <<FK>>
+    cantidad: INT
+    subtotal: DECIMAL(10,2)
+}
+
+class pagos_reserva <<3FN>> {
+    +id_pago: INT <<PK>>
+    --
+    id_reserva: INT <<FK>> <<UNIQUE>>
+    id_promocion: INT <<FK>> <<NULL>>
+    subtotal: DECIMAL(10,2)
+    descuento: DECIMAL(10,2)
+    total: DECIMAL(10,2)
+    metodo_pago_id: INT <<FK>>
+    fecha_pago: TIMESTAMP
+}
+
+class calificaciones <<3FN>> {
+    +id_calificacion: INT <<PK>>
+    --
+    id_reserva: INT <<FK>> <<UNIQUE>>
+    fecha: TIMESTAMP
+}
+
+class detalles_calificacion <<3FN>> {
+    +id_calificacion: INT <<PK,FK>>
+    +tipo_calificacion: VARCHAR(20) <<PK>>
+    --
+    puntuacion: INT
+    comentario: TEXT
+}
+note right of detalles_calificacion
+  **Tipos**: 'servicio', 'barbero',
+  'barberia', 'limpieza', 'puntualidad'
+end note
+
+class promociones <<3FN>> {
+    +id_promocion: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    codigo_promocion: VARCHAR(20)
+    titulo: VARCHAR(100)
+    descripcion: TEXT
+    tipo_promocion_id: INT <<FK>>
+    valor_descuento: DECIMAL(10,2)
+    estado: BOOLEAN
+}
+
+class vigencia_promocion <<3FN>> {
+    +id_promocion: INT <<PK,FK>>
+    --
+    fecha_inicio: DATE
+    fecha_fin: DATE
+    dias_semana: VARCHAR(20)
+    hora_inicio: TIME
+    hora_fin: TIME
+}
+
+' Algunas relaciones principales (simplificadas para claridad)
+usuarios ||--|| datos_personales
+usuarios }o--|| estados_usuario
+barberias ||--|| ubicaciones_barberia
+barberias ||--o{ horarios_barberia
+barberias ||--|| apariencia_barberia
+barberias ||--|| metricas_barberia
+barberos ||--|| perfiles_barbero
+servicios ||--o{ precios_servicio
+reservas ||--o{ detalles_reserva
+reservas ||--|| pagos_reserva
+calificaciones ||--o{ detalles_calificacion
+
+@enduml
