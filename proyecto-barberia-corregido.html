@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProyectoFinal_Grupo3</title>
+    <style>
+        /* Reset de estilos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Estilos para impresión */
+        @media print {
+            @page {
+                size: letter;
+                margin: 1.5cm 2.5cm 1.5cm 3.5cm;
+            }
+            
+            .portada, .nueva-pagina {
+                page-break-before: always;
+            }
+            
+            .no-romper {
+                page-break-inside: avoid;
+            }
+            
+            figure {
+                page-break-inside: avoid;
+            }
+            
+            img {
+                max-width: 90% !important;
+            }
+            
+            .numero-pagina {
+                position: fixed;
+                bottom: 1cm;
+                right: 50%;
+                font-size: 11pt;
+            }
+        }
+        
+        /* Estilos generales del documento */
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+        
+        /* Contenedor principal con márgenes */
+        .contenedor {
+            margin: 1.5cm 2.5cm 1.5cm 3.5cm;
+            padding-bottom: 2cm;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        /* Estilos para párrafos */
+        p {
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 12pt 0;
+            text-align: justify;
+            text-indent: 0;
+        }
+        
+        /* Estilos para títulos - Solo negrilla para títulos */
+        h1 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 12pt 0;
+            text-align: left;
+            page-break-after: avoid;
+        }
+        
+        h2 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 12pt 0;
+            text-align: left;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 12pt 0;
+            text-align: left;
+            page-break-after: avoid;
+        }
+        
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 12pt 0;
+            text-align: left;
+            page-break-after: avoid;
+        }
+        
+        /* Listas */
+        ul, ol {
+            margin: 12pt 0 12pt 20pt;
+            padding-left: 20pt;
+        }
+        
+        li {
+            margin: 6pt 0;
+            line-height: 1.5;
+            text-align: justify;
+        }
+        
+        /* Estilos específicos para la portada */
+        .portada {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2cm;
+        }
+        
+        .portada h1 {
+            font-size: 14pt;
+            font-weight: bold;
+            text-align: center;
+            margin: 2cm 0;
+            line-height: 1.8;
+        }
+        
+        .logo {
+            margin-bottom: 2cm;
+        }
+        
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+        
+        .info-portada {
+            margin-top: 2cm;
+            line-height: 2;
+        }
+        
+        .info-portada p {
+            text-align: center;
+            margin: 0.5cm 0;
+        }
+        
+        /* Estilos para índices */
+        .indice {
+            min-height: 100vh;
+            padding: 2cm 3.5cm 2cm 3.5cm;
+        }
+        
+        .indice h1 {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 2cm;
+        }
+        
+        .indice-item {
+            margin: 8pt 0;
+            text-align: left;
+            font-size: 12pt;
+            line-height: 1.5;
+        }
+        
+        /* Numeración de páginas */
+        .numero-pagina {
+            text-align: center;
+            margin-top: 2cm;
+            font-size: 11pt;
+        }
+        
+        /* Imágenes */
+        figure {
+            margin: 12pt 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        
+        figure img {
+            max-width: 90%;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        figcaption {
+            margin-top: 6pt;
+            font-size: 11pt;
+            text-align: center;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Clase para nueva página */
+        .nueva-pagina {
+            page-break-before: always;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+    <div class="logo">
+        <img src="logo.png" alt="Logo Universidad" style="width: 200px; height: auto; display: block; margin: 0 auto;">
+    </div>
+    
+    <h1>PROYECTO DE BASE DE DATOS:<br>
+    PLATAFORMA DE BARBERÍAS DEL MUNICIPIO CERCADO - COCHABAMBA</h1>
+    
+    <div class="info-portada">
+        <p><strong>Integrantes:</strong></p>
+        <p>Enrique Lujan Arispe</p>
+        <p>William Lujan Arispe</p>
+        <br>
+        <p><strong>Docente:</strong></p>
+        <p>[Nombre del Docente]</p>
+        <br>
+        <p><strong>Materia:</strong></p>
+        <p>Tecnología de Bases de Datos</p>
+        <br>
+        <p><strong>Fecha:</strong></p>
+        <p>12/09/2025</p>
+    </div>
+</div>
+
+<!-- ÍNDICE GENERAL -->
+<div class="indice nueva-pagina">
+    <h1>ÍNDICE GENERAL</h1>
+    <div class="indice-item">1. INTRODUCCIÓN</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;1.1. Antecedentes</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;1.2. Planteamiento del problema</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;1.3. Objetivos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3.1. Objetivo general</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3.2. Objetivos específicos</div>
+    <div class="indice-item">2. MARCO CONCEPTUAL</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.1. Introducción</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.2. Base de Datos Relacionales</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.3. Modelo de Datos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.4. Lenguaje SQL</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4.1. DDL (Data Definition Language)</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4.2. DML (Data Manipulation Language)</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4.3. DQL (Data Query Language)</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.4.4. DCL y TCL</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.5. Seguridad en Bases de Datos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.5.1. Principios de Hardening</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.5.2. Usuarios y Privilegios</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.5.3. Roles y Buenas Prácticas</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.6. Elementos Avanzados de Bases de Datos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.6.1. Vistas</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.6.2. Procedimientos Almacenados</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.6.3. Triggers</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.7. Backups</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;2.8. Migración</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.8.1. Big Bang</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.8.2. Incremental</div>
+    <div class="indice-item">3. MARCO PRÁCTICO</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;3.1. Diseño de la Base de Datos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;3.2. Implementación de la Base de Datos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;3.3. Objetos de la Base de Datos</div>
+    <div class="indice-item">&nbsp;&nbsp;&nbsp;&nbsp;3.4. Planificación de Migraciones</div>
+    <div class="indice-item">4. CONCLUSIONES Y RECOMENDACIONES</div>
+    <div class="indice-item">5. BIBLIOGRAFÍA</div>
+    <div class="indice-item">ANEXOS</div>
+</div>
+
+<!-- ÍNDICE DE TABLAS -->
+<div class="indice nueva-pagina">
+    <h1>ÍNDICE DE TABLAS</h1>
+    <p style="text-align: center; color: #666;">[No hay tablas en este documento]</p>
+</div>
+
+<!-- ÍNDICE DE ILUSTRACIONES -->
+<div class="indice nueva-pagina">
+    <h1>ÍNDICE DE ILUSTRACIONES</h1>
+    <div class="indice-item">Figura 1: Árbol de Problemas</div>
+</div>
+
+<!-- CONTENIDO DEL DOCUMENTO -->
+<div class="contenedor nueva-pagina">
+    
+    <!-- 1. INTRODUCCIÓN -->
+    <h1>1. INTRODUCCIÓN</h1>
+    
+    <h2>1.1. Antecedentes</h2>
+    
+    <p>El presente proyecto surge como un emprendimiento propio orientado a resolver una problemática identificada en el sector de servicios de barbería en el municipio Cercado de la ciudad de Cochabamba, Bolivia.</p>
+    
+    <p>Actualmente, el mercado de barberías en la zona opera de manera tradicional y desorganizada. Un estudio preliminar realizado con 4 barberías locales (1 ubicada en el centro de la ciudad y 3 en zonas periféricas) reveló un interés unánime en adoptar una solución tecnológica que modernice sus operaciones. Estas barberías representan una muestra inicial del mercado potencial, evidenciando que:</p>
+    
+    <ul>
+        <li><strong>No existe competencia directa:</strong> No hay plataformas digitales especializadas en el sector de barberías en Cochabamba.</li>
+        <li><strong>Gestión rudimentaria:</strong> La totalidad de los establecimientos consultados gestionan sus citas y comunicación con clientes a través de WhatsApp o Messenger, sin un sistema formal de organización.</li>
+        <li><strong>Demanda latente:</strong> Los clientes buscan servicios principalmente a través de redes sociales, recomendaciones personales y búsquedas en Google, sin una fuente centralizada de información.</li>
+        <li><strong>Oportunidad de mercado:</strong> Existe una clara necesidad de digitalización y profesionalización del sector.</li>
+    </ul>
+    
+    <h2>1.2. Planteamiento del problema</h2>
+    
+    <h3>Árbol de Problemas</h3>
+    
+    <p><strong>PROBLEMA CENTRAL:</strong> Ausencia de una plataforma digital integrada para la gestión y reserva de servicios de barbería en Cochabamba</p>
+    
+    <h4>Causas:</h4>
+    <ul>
+        <li>Falta de herramientas tecnológicas especializadas para el sector</li>
+        <li>Desconocimiento de los beneficios de la digitalización</li>
+        <li>Comunicación fragmentada entre barberos y clientes</li>
+        <li>Inexistencia de un directorio unificado de servicios</li>
+        <li>Gestión manual e ineficiente de agendas</li>
+    </ul>
+    
+    <h4>Efectos:</h4>
+    <ul>
+        <li>Pérdida de clientes potenciales por falta de visibilidad</li>
+        <li>Sobrecarga de trabajo administrativo para los barberos</li>
+        <li>Dificultad para comparar servicios y precios</li>
+        <li>Imposibilidad de gestionar ofertas y promociones efectivamente</li>
+        <li>Experiencia de usuario deficiente en el proceso de búsqueda y reserva</li>
+        <li>Pérdida de citas por mala coordinación</li>
+        <li>Limitada capacidad de crecimiento del negocio</li>
+    </ul>
+    
+    <p><em>[Ver Figura 1: Árbol de Problemas en la sección de Anexos]</em></p>
+    
+    <h2>1.3. Objetivos</h2>
+    
+    <h3>1.3.1. Objetivo general</h3>
+    
+    <p>Implementar una base de datos relacional que permita la gestión eficiente de servicios de barbería, reservas, usuarios y promociones, garantizando la integridad, seguridad y facilidad de acceso a los usuarios del sistema, facilitando la conexión entre barberos y clientes en el municipio Cercado de Cochabamba.</p>
+    
+    <h3>1.3.2. Objetivos específicos</h3>
+    
+    <ul>
+        <li>Realizar el modelado de la base de datos mediante diagramas entidad-relación (ER) y modelo relacional normalizado.</li>
+        <li>Implementar la Base de Datos en un SGBD adecuado para el proyecto considerando escalabilidad y compatibilidad.</li>
+        <li>Implementar los objetos necesarios en la Base de Datos incluyendo tablas, índices, vistas, procedimientos almacenados, triggers y funciones.</li>
+        <li>Planificar la migración de datos estableciendo protocolos de carga inicial y actualización de información.</li>
+        <li>Diseñar mecanismos de seguridad con control de acceso basado en roles y encriptación de datos sensibles.</li>
+        <li>Establecer indicadores de rendimiento para monitorear y optimizar el funcionamiento del sistema.</li>
+    </ul>
+    
+    <div class="numero-pagina">1</div>
+</div>
+
+<!-- MARCO CONCEPTUAL -->
+<div class="contenedor nueva-pagina">
+    
+    <h1>2. MARCO CONCEPTUAL</h1>
+    
+    <h2>2.1. Introducción</h2>
+    
+    <p>Según Silberschatz, Korth y Sudarshan (2014) en su libro "Fundamentos de Bases de Datos", "un sistema de gestión de bases de datos (SGBD) consiste en una colección de datos interrelacionados y un conjunto de programas para acceder a dichos datos" (p. 1). Esta definición establece la base fundamental para comprender la importancia de implementar un sistema robusto que gestione la información de las barberías en Cochabamba.</p>
+    
+    <h2>2.2. Base de Datos Relacionales</h2>
+    
+    <p>Elmasri y Navathe (2017) definen en "Fundamentos de Sistemas de Bases de Datos" que "el modelo relacional representa la base de datos como una colección de relaciones. Una relación se asemeja a una tabla de valores" (p. 63). Asimismo, Date (2012) señala que "el modelo relacional se ocupa de tres aspectos de los datos: estructura de datos, integridad de datos y manipulación de datos" (p. 127).</p>
+    
+    <p>Para este proyecto, Coronel, Morris y Rob (2011) en "Bases de Datos: Diseño, Implementación y Administración" establecen que "una base de datos relacional almacena tanto los datos como las relaciones entre ellos en forma de tablas bidimensionales" (p. 31), lo cual resulta ideal para gestionar las relaciones entre barberías, servicios, clientes y reservas.</p>
+    
+    <h2>2.3. Modelo de Datos</h2>
+    
+    <p>Según Marqués (2011) en "Bases de Datos", "un modelo de datos es un conjunto de conceptos que permiten describir la estructura de una base de datos, es decir, los datos, las relaciones entre los datos y las restricciones" (p. 15). El proceso de modelado, como indica Piattini et al. (2006), "permite obtener una visión abstracta del mundo real, eliminando detalles superfluos y resaltando aquellos relevantes al problema" (p. 89).</p>
+    
+    <p>Para el diseño conceptual, Batini, Ceri y Navathe (1994) establecen que "el objetivo principal es producir un esquema conceptual que represente correctamente todos los requisitos de datos de los usuarios" (p. 43).</p>
+    
+    <h2>2.4. Lenguaje SQL</h2>
+    
+    <p>Beaulieu (2009) en "SQL Práctico" define SQL como "el lenguaje estándar para trabajar con bases de datos relacionales [...] permite crear estructuras de bases de datos, añadir datos, modificarlos y consultarlos" (p. 3).</p>
+    
+    <h3>2.4.1. DDL (Data Definition Language)</h3>
+    
+    <p>Según Groff, Weinberg y Oppel (2010), "DDL incluye comandos para definir, alterar y eliminar tablas y otros objetos de base de datos como CREATE TABLE, ALTER TABLE y DROP TABLE" (p. 371). Celma, Casamayor y Mota (2003) añaden que "estas sentencias permiten definir el esquema de la base de datos" (p. 145).</p>
+    
+    <h3>2.4.2. DML (Data Manipulation Language)</h3>
+    
+    <p>Date (2012) explica que "DML es el subconjunto de SQL utilizado para insertar, actualizar, eliminar y consultar los datos: INSERT, UPDATE, DELETE y SELECT" (p. 89). Pérez (2014) complementa indicando que "estas operaciones constituyen las operaciones básicas CRUD (Create, Read, Update, Delete)" (p. 201).</p>
+    
+    <h3>2.4.3. DQL (Data Query Language)</h3>
+    
+    <p>Ramez y Shamkant (2017) destacan que "SELECT es la sentencia más poderosa del SQL, permitiendo realizar consultas simples y complejas mediante proyección, selección y combinación de tablas" (p. 187). Como señala Connolly y Begg (2015), "la cláusula SELECT especifica las columnas a recuperar, FROM indica las tablas y WHERE establece las condiciones" (p. 142).</p>
+    
+    <h3>2.4.4. DCL y TCL</h3>
+    
+    <p>Según Mullins (2012), "DCL controla los aspectos de autorización mediante GRANT y REVOKE, determinando qué usuarios pueden realizar qué operaciones" (p. 456). Respecto a TCL, Garcia-Molina et al. (2009) indican que "las transacciones garantizan la consistencia mediante COMMIT para confirmar cambios y ROLLBACK para deshacerlos" (p. 315).</p>
+    
+    <h2>2.5. Seguridad en Bases de Datos</h2>
+    
+    <h3>2.5.1. Principios de Hardening</h3>
+    
+    <p>Litchfield et al. (2005) en "Manual de Seguridad en Bases de Datos" establecen que "el hardening implica configurar el sistema para minimizar vulnerabilidades: deshabilitar servicios innecesarios, aplicar parches y configurar auditorías" (p. 78). Natan (2005) refuerza que "la seguridad debe implementarse en capas: red, sistema operativo, SGBD y aplicación" (p. 112).</p>
+    
+    <h3>2.5.2. Usuarios y Privilegios</h3>
+    
+    <p>Fernández, Piattini y Peso (2008) señalan que "el principio de menor privilegio dicta que cada usuario debe tener únicamente los permisos mínimos necesarios para realizar su trabajo" (p. 234). Como indica Knox (2004), "nunca se debe utilizar la cuenta de administrador para operaciones rutinarias" (p. 89).</p>
+    
+    <h3>2.5.3. Roles y Buenas Prácticas</h3>
+    
+    <p>Según Gertz y Jajodia (2008), "los roles agrupan privilegios relacionados y simplifican la administración de permisos" (p. 167). Las buenas prácticas incluyen, según Ben-Natan y Saraph (2005): "contraseñas fuertes, auditoría continua, encriptación de datos sensibles y validación de entrada para prevenir inyección SQL" (p. 203).</p>
+    
+    <h2>2.6. Elementos Avanzados de Bases de Datos</h2>
+    
+    <h3>2.6.1. Vistas</h3>
+    
+    <p>Según Ramakrishnan y Gehrke (2003) en "Sistemas de Gestión de Bases de Datos", "una vista es una tabla virtual cuyo contenido está definido por una consulta. Una vista no existe como conjunto de valores almacenados, sino como tabla derivada" (p. 98). Silberschatz et al. (2014) añaden que "las vistas proporcionan un mecanismo para ocultar ciertos datos a algunos usuarios y simplificar consultas complejas" (p. 137).</p>
+    
+    <h3>2.6.2. Procedimientos Almacenados</h3>
+    
+    <p>Celma et al. (2003) definen que "un procedimiento almacenado es un programa que se almacena físicamente en la base de datos y que generalmente está escrito en un lenguaje propietario del SGBD" (p. 423). Como indica Oppel (2009), "los procedimientos almacenados mejoran el rendimiento al reducir el tráfico de red y permiten encapsular la lógica del negocio" (p. 289).</p>
+    
+    <h3>2.6.3. Triggers</h3>
+    
+    <p>Date (2012) explica que "un trigger o disparador es un procedimiento que se ejecuta automáticamente cuando ocurre un evento específico en la base de datos" (p. 367). Según Coronel et al. (2011), "los triggers garantizan que ciertas condiciones se cumplan automáticamente cuando se modifican los datos, manteniendo la integridad referencial compleja" (p. 448).</p>
+    
+    <h2>2.7. Backups</h2>
+    
+    <p>Mullins (2012) establece que "el backup es la piedra angular de cualquier estrategia de recuperación de desastres. Sin backups adecuados, es imposible recuperar datos perdidos" (p. 589). Según Alapati (2008) en "Expert Oracle Database 11g Administration", "existen tres tipos principales de backup: completo, incremental y diferencial, cada uno con sus ventajas en términos de tiempo y espacio" (p. 734).</p>
+    
+    <p>Piattini et al. (2006) recomiendan que "la política de copias de seguridad debe definir claramente la frecuencia, el tipo de copia, el medio de almacenamiento y el lugar de custodia" (p. 512).</p>
+    
+    <h2>2.8. Migración</h2>
+    
+    <p>Morris (2012) en "Practical Data Migration" define que "la migración de datos es el proceso de transferir datos entre sistemas, formatos de almacenamiento o bases de datos" (p. 15). Hudicka (2014) añade que "una migración exitosa requiere planificación detallada, mapeo de datos y pruebas exhaustivas" (p. 67).</p>
+    
+    <h3>2.8.1. Big Bang</h3>
+    
+    <p>Según Bisbal et al. (1999), "la migración Big Bang implica completar toda la migración en una ventana de tiempo muy limitada, generalmente durante un fin de semana o periodo de inactividad" (p. 103). Como señala Morris (2012), "aunque es más rápida, esta estrategia conlleva mayor riesgo porque no hay marcha atrás una vez iniciado el proceso" (p. 89).</p>
+    
+    <h3>2.8.2. Incremental</h3>
+    
+    <p>Wu et al. (1997) definen la migración incremental como "un proceso por fases donde los datos se migran en subconjuntos manejables a lo largo del tiempo" (p. 234). Brodie y Stonebraker (1995) indican que "la migración incremental reduce el riesgo al permitir la coexistencia de sistemas antiguos y nuevos durante el periodo de transición" (p. 156).</p>
+    
+    <div class="numero-pagina">2</div>
+</div>
+
+<!-- MARCO PRÁCTICO -->
+<div class="contenedor nueva-pagina">
+    
+    <h1>3. MARCO PRÁCTICO</h1>
+    
+    <h2>3.1. Diseño de la Base de Datos</h2>
+    
+    <p>[Diagramas: Modelo Conceptual, Modelo Lógico (Normalizado), Modelo Físico]</p>
+    
+    <h2>3.2. Implementación de la Base de Datos</h2>
+    
+    <p>[Contenido por desarrollar]</p>
+    
+    <h2>3.3. Objetos de la Base de Datos</h2>
+    
+    <p>[Contenido por desarrollar]</p>
+    
+    <h2>3.4. Planificación de Migraciones</h2>
+    
+    <p>[Contenido por desarrollar]</p>
+    
+    <div class="numero-pagina">3</div>
+</div>
+
+<!-- CONCLUSIONES Y RECOMENDACIONES -->
+<div class="contenedor nueva-pagina">
+    
+    <h1>4. CONCLUSIONES Y RECOMENDACIONES</h1>
+    
+    <p>[Esta sección debe incluir las conclusiones del proyecto y recomendaciones para futuros trabajos.]</p>
+    
+    <h2>Conclusiones</h2>
+    
+    <p>Pendiente de desarrollo tras la implementación completa del proyecto.</p>
+    
+    <h2>Recomendaciones</h2>
+    
+    <p>Pendiente de desarrollo tras la evaluación de resultados.</p>
+    
+    <div class="numero-pagina">4</div>
+</div>
+
+<!-- BIBLIOGRAFÍA -->
+<div class="contenedor nueva-pagina">
+    
+    <h1>5. BIBLIOGRAFÍA</h1>
+    
+    <ul style="list-style-type: none; padding-left: 0;">
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Alapati, S. (2008). <em>Expert Oracle Database 11g Administration</em>. Apress.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Batini, C., Ceri, S., & Navathe, S. (1994). <em>Diseño Conceptual de Bases de Datos: Un Enfoque Entidad-Relación</em>. Addison-Wesley.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Beaulieu, A. (2009). <em>SQL Práctico</em>. Anaya Multimedia.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Ben-Natan, R., & Saraph, N. (2005). <em>Implementing Database Security and Auditing</em>. Digital Press.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Bisbal, J., Lawless, D., Wu, B., & Grimson, J. (1999). <em>Legacy Information Systems: Issues and Directions</em>. IEEE Software.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Brodie, M., & Stonebraker, M. (1995). <em>Migrating Legacy Systems: Gateways, Interfaces & the Incremental Approach</em>. Morgan Kaufmann.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Celma, M., Casamayor, J. C., & Mota, L. (2003). <em>Bases de Datos Relacionales</em>. Pearson Educación.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Connolly, T., & Begg, C. (2015). <em>Sistemas de Bases de Datos: Un Enfoque Práctico para Diseño, Implementación y Gestión</em> (6ª ed.). Pearson.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Coronel, C., Morris, S., & Rob, P. (2011). <em>Bases de Datos: Diseño, Implementación y Administración</em> (9ª ed.). Cengage Learning.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Date, C. J. (2012). <em>Introducción a los Sistemas de Bases de Datos</em> (8ª ed.). Pearson Educación.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Elmasri, R., & Navathe, S. (2017). <em>Fundamentos de Sistemas de Bases de Datos</em> (7ª ed.). Pearson.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Fernández, E., Piattini, M., & Peso, E. (2008). <em>Auditoría Informática: Un Enfoque Práctico</em>. Ra-Ma.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Garcia-Molina, H., Ullman, J., & Widom, J. (2009). <em>Sistemas de Bases de Datos: El Libro Completo</em> (2ª ed.). Pearson.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Gertz, M., & Jajodia, S. (2008). <em>Handbook of Database Security: Applications and Trends</em>. Springer.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Groff, J., Weinberg, P., & Oppel, A. (2010). <em>SQL: The Complete Reference</em> (3ª ed.). McGraw-Hill.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Hudicka, J. (2014). <em>Data Migration: A Practical Guide</em>. Technics Publications.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Knox, D. (2004). <em>Effective Oracle Database 10g Security by Design</em>. McGraw-Hill.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Litchfield, D., Anley, C., Heasman, J., & Grindlay, B. (2005). <em>Manual de Seguridad en Bases de Datos</em>. McGraw-Hill.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Marqués, M. (2011). <em>Bases de Datos</em>. Universitat Jaume I.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Morris, J. (2012). <em>Practical Data Migration</em> (2ª ed.). British Computer Society.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Mullins, C. (2012). <em>Database Administration: The Complete Guide to Practices and Procedures</em>. Addison-Wesley.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Natan, R. B. (2005). <em>Implementing Database Security and Auditing</em>. Elsevier Digital Press.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Oppel, A. (2009). <em>Fundamentos de SQL</em> (3ª ed.). McGraw-Hill.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Pérez, C. (2014). <em>MySQL para Windows y Linux</em>. Ra-Ma.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Piattini, M., Marcos, E., Calero, C., & Vela, B. (2006). <em>Tecnología y Diseño de Bases de Datos</em>. Ra-Ma.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Ramakrishnan, R., & Gehrke, J. (2003). <em>Sistemas de Gestión de Bases de Datos</em> (3ª ed.). McGraw-Hill.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Silberschatz, A., Korth, H. F., & Sudarshan, S. (2014). <em>Fundamentos de Bases de Datos</em> (6ª ed.). McGraw-Hill.</li>
+        
+        <li style="margin: 12pt 0; text-indent: -30px; padding-left: 30px;">Wu, B., Lawless, D., Bisbal, J., & Grimson, J. (1997). <em>The Butterfly Methodology: A Gateway-free Approach for Migrating Legacy Information Systems</em>. IEEE Conference on Engineering of Complex Computer Systems.</li>
+    </ul>
+    
+    <div class="numero-pagina">5</div>
+</div>
+
+<!-- ANEXOS -->
+<div class="contenedor nueva-pagina">
+    
+    <h1>ANEXOS</h1>
+    
+    <h2>Anexo A: Figuras</h2>
+    
+    <h3>Figura 1: Árbol de Problemas</h3>
+    
+    <figure style="margin: 20px 0; page-break-inside: avoid;">
+        <img src="Imagen1.jpg" 
+             alt="Árbol de Problemas - Sistema de Gestión de Barberías" 
+             style="width: 90%; max-width: 600px; height: auto; margin: 0 auto; display: block;">
+        <figcaption style="margin-top: 10px;">Figura 1: Árbol de Problemas - Sistema de Gestión de Barberías</figcaption>
+    </figure>
+    
+    <p style="font-size: 10pt; color: #666; text-align: center; margin-top: 10px;">
+        <em>Nota: La imagen muestra el análisis causa-efecto del problema central: Ausencia de una plataforma digital integrada para la gestión y reserva de servicios de barbería en Cochabamba</em>
+    </p>
+    
+    <div class="numero-pagina">6</div>
+</div>
+
+</body>
+</html>
