@@ -80,6 +80,7 @@ ENTITY Reserva {
     fecha_hora
     estado
     notas
+    precio_final
     fecha_creacion
 }
 

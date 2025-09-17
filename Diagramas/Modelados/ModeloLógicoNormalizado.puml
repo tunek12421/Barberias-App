@@ -195,6 +195,11 @@ class reservas <<3FN>> {
     estado_reserva_id: INT <<FK>>
     fecha_creacion: TIMESTAMP
 }
+note right of reservas
+  **Sin bucles**:
+  Barbería derivada del barbero
+  Evita redundancia
+end note
 
 class detalles_reserva <<3FN>> {
     +id_detalle: INT <<PK>>
