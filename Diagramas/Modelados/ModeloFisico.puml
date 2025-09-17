@@ -36,11 +36,33 @@ class clientes {
     <<CHECK>> chk_puntos_fidelidad >= 0
 }
 
+class administradores {
+    <<table>>
+    +id_administrador: SERIAL <<PK>>
+    --
+    email: VARCHAR(100) <<NOT NULL UNIQUE>>
+    password_hash: VARCHAR(255) <<NOT NULL>>
+    nombre: VARCHAR(50) <<NOT NULL>>
+    apellido: VARCHAR(50) <<NOT NULL>>
+    telefono: VARCHAR(20)
+    dni: VARCHAR(20) <<NOT NULL UNIQUE>>
+    nivel_acceso: nivel_acceso_enum <<NOT NULL DEFAULT 'limitado'>>
+    permisos_especiales: JSONB
+    estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
+    fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
+    ultimo_acceso: TIMESTAMP
+    --
+    <<INDEX>> idx_administradores_email
+    <<INDEX>> idx_administradores_dni
+    <<INDEX>> idx_administradores_estado
+    <<INDEX>> idx_administradores_nivel_acceso
+}
+
 class barberias {
     <<table>>
     +id_barberia: SERIAL <<PK>>
     --
-    id_barbero_admin: INTEGER <<NOT NULL FK>>
+    id_administrador: INTEGER <<NOT NULL FK>>
     nombre: VARCHAR(100) <<NOT NULL>>
     direccion: TEXT <<NOT NULL>>
     telefono: VARCHAR(20) <<NOT NULL>>
@@ -52,11 +74,11 @@ class barberias {
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     --
-    <<INDEX>> idx_barberias_admin
+    <<INDEX>> idx_barberias_administrador
     <<INDEX>> idx_barberias_estado
     <<INDEX>> idx_barberias_ubicacion (latitud, longitud)
     <<CHECK>> chk_horario_valido (horario_apertura < horario_cierre)
-    <<FOREIGN KEY>> (id_barbero_admin) REFERENCES barberos(id_barbero)
+    <<FOREIGN KEY>> (id_administrador) REFERENCES administradores(id_administrador)
 }
 
 class barberos {
@@ -73,7 +95,6 @@ class barberos {
     especialidades: TEXT[]
     experiencia_años: INTEGER <<DEFAULT 0>>
     calificacion_promedio: DECIMAL(3,2) <<DEFAULT 0.00>>
-    es_administrador: BOOLEAN <<NOT NULL DEFAULT FALSE>>
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_ingreso: DATE <<NOT NULL DEFAULT CURRENT_DATE>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
@@ -84,7 +105,6 @@ class barberos {
     <<INDEX>> idx_barberos_barberia
     <<INDEX>> idx_barberos_estado
     <<INDEX>> idx_barberos_calificacion
-    <<INDEX>> idx_barberos_administrador
     <<INDEX>> idx_barberos_especialidades (especialidades) USING GIN
     <<CHECK>> chk_calificacion_range (calificacion_promedio BETWEEN 0.00 AND 5.00)
     <<CHECK>> chk_experiencia_años >= 0
@@ -205,17 +225,8 @@ class calificaciones {
     <<FOREIGN KEY>> (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE
 }
 
-' === TIPOS ENUMERADOS SIMPLIFICADOS ===
-note as enum_types
-**TIPOS ENUMERADOS:**
-
-**estado_enum:** 'activo', 'inactivo'
-**categoria_servicio_enum:** 'corte', 'barba', 'tratamiento', 'combo'
-**estado_reserva_enum:** 'pendiente', 'confirmada', 'completada', 'cancelada'
-end note
-
 ' === RELACIONES SIMPLIFICADAS ===
-barberos ||--o{ barberias : "administra"
+administradores ||--o{ barberias : "administra"
 barberias ||--o{ barberos : "emplea"
 barberias ||--o{ servicios : "ofrece"
 barberias ||--o{ promociones : "publica"
@@ -228,44 +239,5 @@ barberos ||--o{ reservas : "atiende"
 servicios ||--o{ reservas : "es_reservado"
 
 reservas ||--o| calificaciones : "puede_tener"
-
-note bottom
-  **MODELO FÍSICO SIMPLIFICADO - POSTGRESQL**
-  
-  **Objetivo:** Gestión eficiente de servicios de barbería, reservas, 
-  usuarios y promociones, facilitando la conexión entre barberos y clientes.
-  
-  **Características Simplificadas:**
-  • Estructura mínima pero funcional
-  • Autenticación integrada en cada entidad
-  • Barberos pueden administrar barberías
-  • Enfoque en funcionalidades core
-  • Integridad referencial garantizada
-  • Índices optimizados para consultas frecuentes
-  • Constraints de negocio esenciales
-  • Tipos enumerados simplificados
-  • Sin redundancias innecesarias
-  • Eliminación completa de bucles
-  • Sin entidades intermedias de autenticación
-  
-  **Entidades Core:**
-  • clientes (autenticación y datos específicos)
-  • barberias (establecimientos)
-  • barberos (autenticación y datos específicos)
-  • servicios (catálogo por barbería)
-  • reservas (citas y gestión)
-  • promociones (ofertas)
-  • calificaciones (feedback)
-  
-  **Beneficios de Simplificación:**
-  • Menos complejidad de mantenimiento
-  • Mejor rendimiento en consultas
-  • Estructura clara y escalable
-  • Facilita desarrollo e integración
-  • Cumple todos los objetivos principales
-  • Barberos autónomos pueden administrar
-  • Eliminación de roles administrativos separados
-  • Relaciones más naturales y directas
-end note
 
 @enduml
