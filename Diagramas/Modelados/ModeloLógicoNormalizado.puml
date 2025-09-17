@@ -10,9 +10,9 @@ skinparam note {
     BorderColor #FFB300
 }
 
-title Modelo Lógico Normalizado - Tercera Forma Normal (3FN)
+title Modelo Lógico Normalizado COMPLETAMENTE Sin Bucles - 3FN
 
-' === ENTIDADES NORMALIZADAS ===
+' === SISTEMA DE AUTENTICACIÓN AISLADO ===
 
 class usuarios <<3FN>> {
     +id_usuario: INT <<PK>>
@@ -25,22 +25,11 @@ class usuarios <<3FN>> {
     estado_usuario_id: INT <<FK>>
 }
 note right of usuarios
-  **1FN**: ✓ Valores atómicos
-  **2FN**: ✓ Sin dependencias parciales
-  **3FN**: ✓ Sin dependencias transitivas
-  - Separado datos personales
-  - Estado normalizado
+  **Sistema aislado:**
+  Solo para autenticación
+  Sin relaciones con
+  entidades operativas
 end note
-
-class datos_personales <<3FN>> {
-    +id_usuario: INT <<PK,FK>>
-    --
-    nombre: VARCHAR(50)
-    apellido: VARCHAR(50)
-    telefono: VARCHAR(20)
-    fecha_nacimiento: DATE
-    dni: VARCHAR(20)
-}
 
 class estados_usuario <<lookup>> {
     +id_estado: INT <<PK>>
@@ -61,38 +50,190 @@ class usuarios_roles <<3FN>> {
     +id_rol: INT <<PK,FK>>
     --
     fecha_asignacion: TIMESTAMP
-    asignado_por: INT <<FK>>
 }
+
+class mapeo_autenticacion <<3FN>> {
+    +id_mapeo: INT <<PK>>
+    --
+    id_usuario: INT <<FK>> <<UNIQUE>>
+    tipo_entidad_id: INT <<FK>>
+    id_entidad: INT
+    fecha_mapeo: TIMESTAMP
+    activo: BOOLEAN DEFAULT TRUE
+}
+
+class tipos_entidad <<lookup>> {
+    +id_tipo: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    tabla_destino: VARCHAR(50)
+}
+
+' === ENTIDADES OPERATIVAS INDEPENDIENTES ===
+
+class clientes <<3FN>> {
+    +id_cliente: INT <<PK>>
+    --
+    email_cliente: VARCHAR(100) <<UNIQUE>>
+    dni_cliente: VARCHAR(20) <<UNIQUE>>
+    estado_cliente_id: INT <<FK>>
+    fecha_registro: TIMESTAMP
+}
+
+class datos_cliente <<3FN>> {
+    +id_cliente: INT <<PK,FK>>
+    --
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    direccion: VARCHAR(255)
+    fecha_nacimiento: DATE
+}
+
+class preferencias_cliente <<3FN>> {
+    +id_cliente: INT <<PK,FK>>
+    --
+    recibe_notificaciones: BOOLEAN
+    recibe_promociones: BOOLEAN
+    barbero_preferido: INT <<NULL>>
+    servicio_frecuente: INT <<NULL>>
+}
+
+class fidelidad_cliente <<3FN>> {
+    +id_cliente: INT <<PK,FK>>
+    --
+    puntos: INT DEFAULT 0
+    nivel_fidelidad_id: INT <<FK>>
+    fecha_primera_visita: DATE
+    total_visitas: INT DEFAULT 0
+}
+
+class niveles_fidelidad <<lookup>> {
+    +id_nivel: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    puntos_requeridos: INT
+    descuento_porcentaje: DECIMAL(5,2)
+}
+
+class estados_cliente <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
+
+class administradores_barberia <<3FN>> {
+    +id_admin: INT <<PK>>
+    --
+    email_admin: VARCHAR(100) <<UNIQUE>>
+    dni_admin: VARCHAR(20) <<UNIQUE>>
+    estado_admin_id: INT <<FK>>
+    fecha_registro: TIMESTAMP
+}
+
+class datos_admin <<3FN>> {
+    +id_admin: INT <<PK,FK>>
+    --
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    direccion: VARCHAR(255)
+}
+
+class permisos_admin <<3FN>> {
+    +id_admin: INT <<PK,FK>>
+    --
+    nivel_acceso_id: INT <<FK>>
+    puede_eliminar: BOOLEAN DEFAULT FALSE
+    puede_modificar_precios: BOOLEAN DEFAULT TRUE
+    puede_ver_reportes: BOOLEAN DEFAULT TRUE
+}
+
+class niveles_acceso_admin <<lookup>> {
+    +id_nivel: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    descripcion: VARCHAR(100)
+}
+
+class estados_admin <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
+
+class personal_barbero <<3FN>> {
+    +id_personal: INT <<PK>>
+    --
+    email_barbero: VARCHAR(100) <<UNIQUE>>
+    dni: VARCHAR(20) <<UNIQUE>>
+    estado_personal_id: INT <<FK>>
+    fecha_registro: TIMESTAMP
+}
+
+class datos_personal <<3FN>> {
+    +id_personal: INT <<PK,FK>>
+    --
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    direccion: VARCHAR(255)
+    fecha_nacimiento: DATE
+}
+
+class estados_personal <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
+
+' === ENTIDADES DE BARBERÍA NORMALIZADAS ===
 
 class barberias <<3FN>> {
     +id_barberia: INT <<PK>>
     --
     id_admin: INT <<FK>>
+    codigo_barberia: VARCHAR(20) <<UNIQUE>>
     nombre: VARCHAR(100)
     descripcion: TEXT
     telefono: VARCHAR(20)
     email: VARCHAR(100)
     estado_barberia_id: INT <<FK>>
     fecha_registro: TIMESTAMP
-    suscripcion_activa_id: INT <<FK>>
 }
-note right of barberias
-  **Normalización aplicada**:
-  - Ubicación en tabla separada
-  - Horarios en tabla separada
-  - Apariencia en tabla separada
-  - Métricas en tabla separada
-end note
+
+class estados_barberia <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
 
 class ubicaciones_barberia <<3FN>> {
     +id_barberia: INT <<PK,FK>>
     --
     direccion: VARCHAR(255)
-    ciudad: VARCHAR(100)
-    zona: VARCHAR(100)
+    zona_id: INT <<FK>>
     latitud: DECIMAL(10,8)
     longitud: DECIMAL(11,8)
     referencia: TEXT
+}
+
+class zonas <<lookup>> {
+    +id_zona: INT <<PK>>
+    --
+    nombre: VARCHAR(100)
+    ciudad_id: INT <<FK>>
+}
+
+class ciudades <<lookup>> {
+    +id_ciudad: INT <<PK>>
+    --
+    nombre: VARCHAR(100)
+    departamento: VARCHAR(100)
 }
 
 class horarios_barberia <<3FN>> {
@@ -101,7 +242,7 @@ class horarios_barberia <<3FN>> {
     --
     hora_apertura: TIME
     hora_cierre: TIME
-    cerrado: BOOLEAN
+    cerrado: BOOLEAN DEFAULT FALSE
 }
 
 class apariencia_barberia <<3FN>> {
@@ -121,33 +262,61 @@ class temas_interfaz <<lookup>> {
     configuracion_json: JSON
 }
 
-class metricas_barberia <<3FN>> {
+class metricas_barberia <<desnormalizada>> {
     +id_barberia: INT <<PK,FK>>
     --
     calificacion_promedio: DECIMAL(3,2)
     total_calificaciones: INT
     total_reservas: INT
-    total_clientes: INT
+    total_clientes_unicos: INT
+    ingresos_mes_actual: DECIMAL(12,2)
     ultima_actualizacion: TIMESTAMP
 }
+
+' === BARBEROS Y SERVICIOS ===
 
 class barberos <<3FN>> {
     +id_barbero: INT <<PK>>
     --
-    id_usuario: INT <<FK>> <<UNIQUE>>
+    id_personal: INT <<FK>> <<UNIQUE>>
     id_barberia: INT <<FK>>
     codigo_empleado: VARCHAR(20)
     fecha_ingreso: DATE
+    fecha_salida: DATE <<NULL>>
     estado_barbero_id: INT <<FK>>
+}
+
+class estados_barbero <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
 }
 
 class perfiles_barbero <<3FN>> {
     +id_barbero: INT <<PK,FK>>
     --
-    especialidad: VARCHAR(100)
+    especialidad_id: INT <<FK>>
     experiencia_años: INT
     foto_url: VARCHAR(500)
     biografia: TEXT
+}
+
+class metricas_barbero <<desnormalizada>> {
+    +id_barbero: INT <<PK,FK>>
+    --
+    calificacion_promedio: DECIMAL(3,2)
+    total_servicios: INT
+    total_clientes_atendidos: INT
+    servicios_mes_actual: INT
+    ultima_actualizacion: TIMESTAMP
+}
+
+class especialidades_barbero <<lookup>> {
+    +id_especialidad: INT <<PK>>
+    --
+    nombre: VARCHAR(100)
+    descripcion: VARCHAR(255)
 }
 
 class servicios <<3FN>> {
@@ -159,7 +328,8 @@ class servicios <<3FN>> {
     nombre: VARCHAR(100)
     descripcion: TEXT
     duracion_minutos: INT
-    estado: BOOLEAN
+    requiere_cita: BOOLEAN DEFAULT TRUE
+    estado: BOOLEAN DEFAULT TRUE
 }
 
 class categorias_servicio <<lookup>> {
@@ -168,6 +338,7 @@ class categorias_servicio <<lookup>> {
     nombre: VARCHAR(50)
     descripcion: VARCHAR(255)
     icono: VARCHAR(100)
+    orden: INT
 }
 
 class precios_servicio <<3FN>> {
@@ -177,104 +348,400 @@ class precios_servicio <<3FN>> {
     precio: DECIMAL(10,2)
     fecha_inicio: DATE
     fecha_fin: DATE <<NULL>>
-    activo: BOOLEAN
+    activo: BOOLEAN DEFAULT TRUE
 }
-note right of precios_servicio
-  **Historial de precios**:
-  Permite mantener registro
-  histórico de cambios de precio
+
+' === ASIGNACIONES Y DISPONIBILIDAD ===
+
+class barberos_servicios <<3FN>> {
+    +id_asignacion: INT <<PK>>
+    --
+    id_barbero: INT <<FK>>
+    id_servicio: INT <<FK>>
+    habilitado: BOOLEAN DEFAULT TRUE
+    tiempo_extra: INT DEFAULT 0
+}
+note right of barberos_servicios
+  **Tabla crítica anti-bucle:**
+  Define capacidades sin
+  crear ciclos en el grafo
 end note
+
+class precios_especiales_barbero <<3FN>> {
+    +id_asignacion: INT <<PK,FK>>
+    --
+    precio_especial: DECIMAL(10,2)
+    fecha_inicio: DATE
+    fecha_fin: DATE <<NULL>>
+    activo: BOOLEAN DEFAULT TRUE
+}
+
+class horarios_barbero <<3FN>> {
+    +id_barbero: INT <<PK,FK>>
+    +dia_semana: INT <<PK>>
+    --
+    hora_entrada: TIME
+    hora_salida: TIME
+    hora_almuerzo_inicio: TIME <<NULL>>
+    hora_almuerzo_fin: TIME <<NULL>>
+    disponible: BOOLEAN DEFAULT TRUE
+}
+
+' === RESERVAS SIN BUCLES ===
 
 class reservas <<3FN>> {
     +id_reserva: INT <<PK>>
     --
     codigo_reserva: VARCHAR(20) <<UNIQUE>>
     id_cliente: INT <<FK>>
-    id_barbero: INT <<FK>>
+    id_asignacion: INT <<FK>>
     fecha_hora: TIMESTAMP
+    duracion_estimada: INT
     estado_reserva_id: INT <<FK>>
+    origen_reserva_id: INT <<FK>>
     fecha_creacion: TIMESTAMP
 }
-note right of reservas
-  **Sin bucles**:
-  Barbería derivada del barbero
-  Evita redundancia
-end note
+
+class estados_reserva <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+    color_hex: VARCHAR(7)
+    notifica_cliente: BOOLEAN
+    notifica_barbero: BOOLEAN
+}
+
+class origenes_reserva <<lookup>> {
+    +id_origen: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    descripcion: VARCHAR(100)
+}
 
 class detalles_reserva <<3FN>> {
-    +id_detalle: INT <<PK>>
+    +id_reserva: INT <<PK,FK>>
+    --
+    notas_cliente: TEXT <<NULL>>
+    notas_barbero: TEXT <<NULL>>
+    recordatorio_enviado: BOOLEAN DEFAULT FALSE
+}
+
+class historico_estados_reserva <<3FN>> {
+    +id_historico: INT <<PK>>
     +id_reserva: INT <<FK>>
     --
-    id_servicio: INT <<FK>>
-    id_precio: INT <<FK>>
-    cantidad: INT
-    subtotal: DECIMAL(10,2)
+    estado_anterior_id: INT <<FK>> <<NULL>>
+    estado_nuevo_id: INT <<FK>>
+    fecha_cambio: TIMESTAMP
+    motivo: VARCHAR(255)
+    cambiado_por_tipo: VARCHAR(20)
+    cambiado_por_id: INT
 }
 
 class pagos_reserva <<3FN>> {
     +id_pago: INT <<PK>>
     --
     id_reserva: INT <<FK>> <<UNIQUE>>
-    id_promocion: INT <<FK>> <<NULL>>
+    id_precio: INT <<FK>>
     subtotal: DECIMAL(10,2)
-    descuento: DECIMAL(10,2)
+    descuento_fidelidad: DECIMAL(10,2) DEFAULT 0
+    descuento_promocion: DECIMAL(10,2) DEFAULT 0
     total: DECIMAL(10,2)
     metodo_pago_id: INT <<FK>>
+    estado_pago_id: INT <<FK>>
     fecha_pago: TIMESTAMP
 }
+
+class aplicaciones_promocion <<3FN>> {
+    +id_pago: INT <<PK,FK>>
+    +id_promocion: INT <<PK,FK>>
+    --
+    monto_descuento: DECIMAL(10,2)
+}
+
+class metodos_pago <<lookup>> {
+    +id_metodo: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    requiere_confirmacion: BOOLEAN
+    activo: BOOLEAN DEFAULT TRUE
+}
+
+class estados_pago <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
+
+' === CALIFICACIONES ===
 
 class calificaciones <<3FN>> {
     +id_calificacion: INT <<PK>>
     --
     id_reserva: INT <<FK>> <<UNIQUE>>
     fecha: TIMESTAMP
+    visible: BOOLEAN DEFAULT TRUE
 }
 
 class detalles_calificacion <<3FN>> {
     +id_calificacion: INT <<PK,FK>>
-    +tipo_calificacion: VARCHAR(20) <<PK>>
+    +id_aspecto: INT <<PK,FK>>
     --
-    puntuacion: INT
-    comentario: TEXT
+    puntuacion: INT CHECK (1-5)
+    comentario: TEXT <<NULL>>
 }
-note right of detalles_calificacion
-  **Tipos**: 'servicio', 'barbero',
-  'barberia', 'limpieza', 'puntualidad'
-end note
+
+class aspectos_calificacion <<lookup>> {
+    +id_aspecto: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    descripcion: VARCHAR(100)
+    aplica_a: ENUM('servicio','barbero','barberia','ambiente')
+    orden: INT
+}
+
+' === PROMOCIONES ===
 
 class promociones <<3FN>> {
     +id_promocion: INT <<PK>>
     --
     id_barberia: INT <<FK>>
-    codigo_promocion: VARCHAR(20)
+    codigo_promocion: VARCHAR(20) <<UNIQUE>>
     titulo: VARCHAR(100)
     descripcion: TEXT
     tipo_promocion_id: INT <<FK>>
     valor_descuento: DECIMAL(10,2)
-    estado: BOOLEAN
+    requiere_codigo: BOOLEAN DEFAULT FALSE
+    estado: BOOLEAN DEFAULT TRUE
 }
 
-class vigencia_promocion <<3FN>> {
+class tipos_promocion <<lookup>> {
+    +id_tipo: INT <<PK>>
+    --
+    nombre: VARCHAR(30)
+    es_porcentaje: BOOLEAN
+}
+
+class vigencias_promocion <<3FN>> {
     +id_promocion: INT <<PK,FK>>
     --
     fecha_inicio: DATE
     fecha_fin: DATE
-    dias_semana: VARCHAR(20)
-    hora_inicio: TIME
-    hora_fin: TIME
+    max_usos_total: INT <<NULL>>
+    max_usos_cliente: INT <<NULL>>
+    usos_actuales: INT DEFAULT 0
 }
 
-' Algunas relaciones principales (simplificadas para claridad)
-usuarios ||--|| datos_personales
+class restricciones_promocion <<3FN>> {
+    +id_promocion: INT <<PK,FK>>
+    +dia_semana: INT <<PK>>
+    --
+    hora_inicio: TIME <<NULL>>
+    hora_fin: TIME <<NULL>>
+    aplica: BOOLEAN DEFAULT TRUE
+}
+
+' === SUSCRIPCIONES ===
+
+class suscripciones <<3FN>> {
+    +id_suscripcion: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    id_plan: INT <<FK>>
+    fecha_inicio: DATE
+    fecha_fin: DATE
+    estado_suscripcion_id: INT <<FK>>
+    monto_pagado: DECIMAL(10,2)
+    metodo_pago_id: INT <<FK>>
+}
+
+class planes_suscripcion <<lookup>> {
+    +id_plan: INT <<PK>>
+    --
+    nombre: VARCHAR(50)
+    descripcion: TEXT
+    precio_mensual: DECIMAL(10,2)
+    duracion_meses: INT
+}
+
+class caracteristicas_plan <<3FN>> {
+    +id_plan: INT <<PK,FK>>
+    +id_caracteristica: INT <<PK,FK>>
+    --
+    valor: VARCHAR(100)
+}
+
+class tipos_caracteristica <<lookup>> {
+    +id_caracteristica: INT <<PK>>
+    --
+    nombre: VARCHAR(50)
+    tipo_dato: VARCHAR(20)
+    unidad: VARCHAR(20) <<NULL>>
+}
+
+class estados_suscripcion <<lookup>> {
+    +id_estado: INT <<PK>>
+    --
+    nombre_estado: VARCHAR(20)
+    descripcion: VARCHAR(100)
+}
+
+' === SISTEMA ===
+
+class logs_sistema <<3FN>> {
+    +id_log: BIGINT <<PK>>
+    --
+    tipo_entidad: VARCHAR(30)
+    id_entidad: INT
+    tipo_evento_id: INT <<FK>>
+    descripcion: TEXT
+    datos_json: JSON <<NULL>>
+    ip_direccion: VARCHAR(45)
+    user_agent: VARCHAR(255)
+    timestamp: TIMESTAMP
+}
+
+class tipos_evento_log <<lookup>> {
+    +id_tipo: INT <<PK>>
+    --
+    codigo: VARCHAR(50)
+    nombre: VARCHAR(100)
+    nivel: ENUM('debug','info','warning','error','critical')
+}
+
+class notificaciones <<3FN>> {
+    +id_notificacion: INT <<PK>>
+    --
+    tipo_destinatario: VARCHAR(20)
+    id_destinatario: INT
+    tipo_notificacion_id: INT <<FK>>
+    titulo: VARCHAR(100)
+    mensaje: TEXT
+    datos_json: JSON <<NULL>>
+    prioridad: ENUM('baja','media','alta','urgente')
+    leida: BOOLEAN DEFAULT FALSE
+    fecha_envio: TIMESTAMP
+    fecha_lectura: TIMESTAMP <<NULL>>
+}
+
+class tipos_notificacion <<lookup>> {
+    +id_tipo: INT <<PK>>
+    --
+    codigo: VARCHAR(50)
+    nombre: VARCHAR(100)
+    plantilla_titulo: VARCHAR(200)
+    plantilla_mensaje: TEXT
+}
+
+' === RELACIONES COMPLETAMENTE SIN BUCLES ===
+
+' Sistema de autenticación (aislado)
 usuarios }o--|| estados_usuario
+usuarios ||--o{ usuarios_roles
+roles ||--o{ usuarios_roles
+usuarios ||--o{ mapeo_autenticacion
+mapeo_autenticacion }o--|| tipos_entidad
+
+' Clientes (independientes)
+clientes }o--|| estados_cliente
+clientes ||--|| datos_cliente
+clientes ||--|| preferencias_cliente
+clientes ||--|| fidelidad_cliente
+fidelidad_cliente }o--|| niveles_fidelidad
+
+' Administradores (independientes)
+administradores_barberia }o--|| estados_admin
+administradores_barberia ||--|| datos_admin
+administradores_barberia ||--|| permisos_admin
+permisos_admin }o--|| niveles_acceso_admin
+
+' Personal (independiente)
+personal_barbero }o--|| estados_personal
+personal_barbero ||--|| datos_personal
+
+' Barberías
+administradores_barberia ||--o{ barberias
+barberias }o--|| estados_barberia
 barberias ||--|| ubicaciones_barberia
+ubicaciones_barberia }o--|| zonas
+zonas }o--|| ciudades
 barberias ||--o{ horarios_barberia
 barberias ||--|| apariencia_barberia
+apariencia_barberia }o--|| temas_interfaz
 barberias ||--|| metricas_barberia
+
+' Barberos
+personal_barbero ||--o| barberos
+barberias ||--o{ barberos
+barberos }o--|| estados_barbero
 barberos ||--|| perfiles_barbero
+perfiles_barbero }o--|| especialidades_barbero
+barberos ||--|| metricas_barbero
+barberos ||--o{ horarios_barbero
+
+' Servicios
+barberias ||--o{ servicios
+servicios }o--|| categorias_servicio
 servicios ||--o{ precios_servicio
-reservas ||--o{ detalles_reserva
+
+' Asignaciones (crítico para no-bucles)
+barberos ||--o{ barberos_servicios
+servicios ||--o{ barberos_servicios
+barberos_servicios ||--o| precios_especiales_barbero
+
+' Reservas (sin bucle a usuarios)
+clientes ||--o{ reservas
+barberos_servicios ||--o{ reservas
+reservas }o--|| estados_reserva
+reservas }o--|| origenes_reserva
+reservas ||--|| detalles_reserva
+reservas ||--o{ historico_estados_reserva
+historico_estados_reserva }o--|| estados_reserva
+
+' Pagos
 reservas ||--|| pagos_reserva
+pagos_reserva }o--|| precios_servicio
+pagos_reserva }o--|| metodos_pago
+pagos_reserva }o--|| estados_pago
+pagos_reserva ||--o{ aplicaciones_promocion
+
+' Calificaciones
+reservas ||--|| calificaciones
 calificaciones ||--o{ detalles_calificacion
+detalles_calificacion }o--|| aspectos_calificacion
+
+' Promociones
+barberias ||--o{ promociones
+promociones }o--|| tipos_promocion
+promociones ||--|| vigencias_promocion
+promociones ||--o{ restricciones_promocion
+promociones ||--o{ aplicaciones_promocion
+
+' Suscripciones
+barberias ||--o{ suscripciones
+suscripciones }o--|| planes_suscripcion
+suscripciones }o--|| estados_suscripcion
+suscripciones }o--|| metodos_pago
+planes_suscripcion ||--o{ caracteristicas_plan
+caracteristicas_plan }o--|| tipos_caracteristica
+
+' Sistema
+logs_sistema }o--|| tipos_evento_log
+notificaciones }o--|| tipos_notificacion
+
+note bottom
+  **VERIFICACIÓN EXHAUSTIVA - GRAFO ACÍCLICO DIRIGIDO:**
+  
+  ✅ usuarios → mapeo_autenticacion (FIN - unidireccional)
+  ✅ clientes → reservas → barberos_servicios → barberos → personal_barbero (FIN)
+  ✅ administradores_barberia → barberias → barberos → personal_barbero (FIN)
+  ✅ personal_barbero: Sin conexión inversa
+  ✅ clientes: Sin conexión a usuarios
+  ✅ administradores_barberia: Sin conexión a usuarios
+  
+  **NO EXISTEN CICLOS - DISEÑO DAG (Directed Acyclic Graph)**
+end note
 
 @enduml

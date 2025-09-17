@@ -6,22 +6,25 @@ skinparam class {
     ArrowColor #4CAF50
 }
 
-title Modelo Lógico - Esquema Relacional
+title Modelo Lógico COMPLETAMENTE Sin Bucles - Esquema Relacional
 
+' === TABLAS DE AUTENTICACIÓN (AISLADAS) ===
 class usuarios {
     <<table>>
     +id_usuario: INT <<PK>>
     --
     email: VARCHAR(100) <<UNIQUE>>
     password_hash: VARCHAR(255)
-    nombre: VARCHAR(50)
-    apellido: VARCHAR(50)
-    telefono: VARCHAR(20)
     fecha_registro: TIMESTAMP
     estado: ENUM('activo','inactivo','suspendido')
     ultimo_acceso: TIMESTAMP
     intentos_fallidos: INT
 }
+note right of usuarios
+  Solo autenticación
+  Sin FK a otras entidades
+  operativas
+end note
 
 class roles {
     <<table>>
@@ -33,17 +36,92 @@ class roles {
 
 class usuarios_roles {
     <<table>>
-    +id_usuario: INT <<FK>>
-    +id_rol: INT <<FK>>
+    +id_usuario: INT <<PK,FK>>
+    +id_rol: INT <<PK,FK>>
     --
     fecha_asignacion: TIMESTAMP
 }
 
+class mapeo_autenticacion {
+    <<table>>
+    +id_mapeo: INT <<PK>>
+    --
+    id_usuario: INT <<FK>> <<UNIQUE>>
+    tipo_entidad: ENUM('cliente','admin','barbero')
+    id_entidad: INT
+    fecha_mapeo: TIMESTAMP
+}
+note right of mapeo_autenticacion
+  Tabla puente unidireccional
+  Usuario → Entidad
+  Sin FK inversa
+end note
+
+' === ENTIDADES OPERATIVAS INDEPENDIENTES ===
+class clientes {
+    <<table>>
+    +id_cliente: INT <<PK>>
+    --
+    email_cliente: VARCHAR(100) <<UNIQUE>>
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    dni: VARCHAR(20)
+    direccion: VARCHAR(255)
+    fecha_nacimiento: DATE
+    preferencias_json: JSON
+    fecha_primera_visita: DATE
+    puntos_fidelidad: INT DEFAULT 0
+    estado_cliente: ENUM('activo','inactivo')
+}
+note right of clientes
+  Independiente de usuarios
+  Sin FK a tabla usuarios
+end note
+
+class administradores_barberia {
+    <<table>>
+    +id_admin: INT <<PK>>
+    --
+    email_admin: VARCHAR(100) <<UNIQUE>>
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    dni: VARCHAR(20)
+    nivel_acceso: ENUM('total','limitado')
+    fecha_asignacion: TIMESTAMP
+    estado_admin: ENUM('activo','inactivo')
+}
+note right of administradores_barberia
+  Independiente de usuarios
+  Sin FK a tabla usuarios
+end note
+
+class personal_barbero {
+    <<table>>
+    +id_personal: INT <<PK>>
+    --
+    email_barbero: VARCHAR(100) <<UNIQUE>>
+    nombre: VARCHAR(50)
+    apellido: VARCHAR(50)
+    telefono: VARCHAR(20)
+    dni: VARCHAR(20) <<UNIQUE>>
+    direccion: VARCHAR(255)
+    fecha_nacimiento: DATE
+    estado_personal: ENUM('activo','inactivo')
+}
+note right of personal_barbero
+  Independiente de usuarios
+  Sin FK a tabla usuarios
+end note
+
+' === TABLAS DE BARBERÍA ===
 class barberias {
     <<table>>
     +id_barberia: INT <<PK>>
     --
     id_admin: INT <<FK>>
+    codigo_barberia: VARCHAR(20) <<UNIQUE>>
     nombre: VARCHAR(100)
     descripcion: TEXT
     direccion: VARCHAR(255)
@@ -58,16 +136,26 @@ class barberias {
     logo_url: VARCHAR(500)
     banner_url: VARCHAR(500)
     tema_interfaz: VARCHAR(50)
+}
+
+class metricas_barberia {
+    <<table>>
+    +id_barberia: INT <<PK,FK>>
+    --
     calificacion_promedio: DECIMAL(3,2)
     total_calificaciones: INT
+    total_reservas: INT
+    total_clientes: INT
+    ultima_actualizacion: TIMESTAMP
 }
 
 class barberos {
     <<table>>
     +id_barbero: INT <<PK>>
     --
-    id_usuario: INT <<FK>>
+    id_personal: INT <<FK>> <<UNIQUE>>
     id_barberia: INT <<FK>>
+    codigo_empleado: VARCHAR(20)
     especialidad: VARCHAR(100)
     experiencia_años: INT
     foto_url: VARCHAR(500)
@@ -75,6 +163,7 @@ class barberos {
     estado: ENUM('activo','inactivo','vacaciones')
     calificacion_promedio: DECIMAL(3,2)
     total_servicios: INT
+    fecha_ingreso: DATE
 }
 
 class servicios {
@@ -82,66 +171,32 @@ class servicios {
     +id_servicio: INT <<PK>>
     --
     id_barberia: INT <<FK>>
+    codigo_servicio: VARCHAR(20)
     nombre: VARCHAR(100)
     descripcion: TEXT
     duracion_minutos: INT
     precio: DECIMAL(10,2)
     categoria: VARCHAR(50)
     estado: ENUM('activo','inactivo')
-    fecha_creacion: TIMESTAMP
 }
 
-class reservas {
+' === TABLAS DE ASIGNACIÓN Y DISPONIBILIDAD ===
+class barberos_servicios {
     <<table>>
-    +id_reserva: INT <<PK>>
+    +id_asignacion: INT <<PK>>
     --
-    id_cliente: INT <<FK>>
     id_barbero: INT <<FK>>
     id_servicio: INT <<FK>>
-    id_promocion: INT <<FK>> <<NULL>>
-    fecha_hora: TIMESTAMP
-    estado: ENUM('pendiente','confirmada','completada','cancelada')
-    notas: TEXT
-    precio_final: DECIMAL(10,2)
-    fecha_creacion: TIMESTAMP
-    fecha_actualizacion: TIMESTAMP
+    disponible: BOOLEAN DEFAULT TRUE
+    precio_especial: DECIMAL(10,2) <<NULL>>
 }
-note right of reservas
-  La barbería se deriva
-  a través del barbero
-  (sin bucles)
+note right of barberos_servicios
+  Clave para evitar bucles
+  Define qué puede hacer
+  cada barbero
 end note
 
-class calificaciones {
-    <<table>>
-    +id_calificacion: INT <<PK>>
-    --
-    id_reserva: INT <<FK>> <<UNIQUE>>
-    id_cliente: INT <<FK>>
-    id_barbero: INT <<FK>>
-    id_barberia: INT <<FK>>
-    puntuacion_servicio: INT
-    puntuacion_barbero: INT
-    comentario: TEXT
-    fecha: TIMESTAMP
-}
-
-class promociones {
-    <<table>>
-    +id_promocion: INT <<PK>>
-    --
-    id_barberia: INT <<FK>>
-    titulo: VARCHAR(100)
-    descripcion: TEXT
-    tipo_descuento: ENUM('porcentaje','monto_fijo')
-    valor_descuento: DECIMAL(10,2)
-    fecha_inicio: DATE
-    fecha_fin: DATE
-    dias_validos: VARCHAR(20)
-    estado: ENUM('activa','inactiva','vencida')
-}
-
-class horarios {
+class horarios_barbero {
     <<table>>
     +id_horario: INT <<PK>>
     --
@@ -152,11 +207,64 @@ class horarios {
     disponible: BOOLEAN
 }
 
+' === TABLAS DE RESERVAS ===
+class reservas {
+    <<table>>
+    +id_reserva: INT <<PK>>
+    --
+    codigo_reserva: VARCHAR(20) <<UNIQUE>>
+    id_cliente: INT <<FK>>
+    id_asignacion: INT <<FK>>
+    fecha_hora: TIMESTAMP
+    estado: ENUM('pendiente','confirmada','completada','cancelada')
+    notas: TEXT
+    precio_original: DECIMAL(10,2)
+    descuento: DECIMAL(10,2)
+    precio_final: DECIMAL(10,2)
+    fecha_creacion: TIMESTAMP
+    fecha_actualizacion: TIMESTAMP
+}
+note right of reservas
+  Cliente independiente
+  No hay camino a usuarios
+end note
+
+class calificaciones {
+    <<table>>
+    +id_calificacion: INT <<PK>>
+    --
+    id_reserva: INT <<FK>> <<UNIQUE>>
+    puntuacion_servicio: INT CHECK (1-5)
+    puntuacion_barbero: INT CHECK (1-5)
+    puntuacion_barberia: INT CHECK (1-5)
+    comentario: TEXT
+    fecha: TIMESTAMP
+    visible: BOOLEAN DEFAULT TRUE
+}
+
+' === OTRAS TABLAS ===
+class promociones {
+    <<table>>
+    +id_promocion: INT <<PK>>
+    --
+    id_barberia: INT <<FK>>
+    codigo_promocion: VARCHAR(20)
+    titulo: VARCHAR(100)
+    descripcion: TEXT
+    tipo_descuento: ENUM('porcentaje','monto_fijo')
+    valor_descuento: DECIMAL(10,2)
+    fecha_inicio: DATE
+    fecha_fin: DATE
+    dias_validos: VARCHAR(20)
+    estado: ENUM('activa','inactiva','vencida')
+}
+
 class logs_sistema {
     <<table>>
     +id_log: BIGINT <<PK>>
     --
-    id_usuario: INT <<FK>> <<NULL>>
+    tipo_entidad: VARCHAR(30)
+    id_entidad: INT
     tipo_evento: VARCHAR(50)
     descripcion: TEXT
     ip_direccion: VARCHAR(45)
@@ -164,6 +272,10 @@ class logs_sistema {
     timestamp: TIMESTAMP
     nivel: ENUM('info','warning','error','critical')
 }
+note right of logs_sistema
+  Logs polimórficos
+  Sin FK directas
+end note
 
 class suscripciones {
     <<table>>
@@ -183,37 +295,57 @@ class notificaciones {
     <<table>>
     +id_notificacion: INT <<PK>>
     --
-    id_usuario: INT <<FK>>
-    tipo: VARCHAR(50)
+    tipo_destinatario: ENUM('cliente','barbero','admin')
+    id_destinatario: INT
+    tipo_notificacion: VARCHAR(50)
     titulo: VARCHAR(100)
     mensaje: TEXT
-    leida: BOOLEAN
+    leida: BOOLEAN DEFAULT FALSE
     fecha_envio: TIMESTAMP
     fecha_lectura: TIMESTAMP <<NULL>>
 }
+note right of notificaciones
+  Notificaciones polimórficas
+  Sin FK directas
+end note
 
-' Relaciones
+' === RELACIONES COMPLETAMENTE SIN BUCLES ===
+
+' Autenticación (aislada)
 usuarios ||--o{ usuarios_roles : tiene
 roles ||--o{ usuarios_roles : asignado_a
-usuarios ||--o{ barberias : administra
-usuarios ||--o{ barberos : es
-usuarios ||--o{ reservas : realiza
-usuarios ||--o{ calificaciones : hace
-usuarios ||--o{ logs_sistema : genera
-usuarios ||--o{ notificaciones : recibe
+usuarios ||--o{ mapeo_autenticacion : mapea
 
+' Administración (sin conexión a usuarios)
+administradores_barberia ||--o{ barberias : administra
+
+' Estructura de barbería
 barberias ||--o{ barberos : emplea
 barberias ||--o{ servicios : ofrece
 barberias ||--o{ promociones : publica
 barberias ||--|| suscripciones : tiene
-barberias ||--o{ calificaciones : recibe
+barberias ||--|| metricas_barberia : tiene_metricas
 
-barberos ||--o{ reservas : atiende
-barberos ||--o{ horarios : tiene
-barberos ||--o{ calificaciones : recibe
+' Personal y barberos
+personal_barbero ||--o| barberos : trabaja_como
+barberos ||--o{ horarios_barbero : tiene_horario
 
-servicios ||--o{ reservas : incluido_en
+' Asignaciones y servicios
+barberos ||--o{ barberos_servicios : puede_realizar
+servicios ||--o{ barberos_servicios : es_realizado_por
+
+' Reservas (sin conexión a usuarios)
+clientes ||--o{ reservas : realiza
+barberos_servicios ||--o{ reservas : define_servicio
 reservas ||--|| calificaciones : genera
-promociones ||--o{ reservas : aplica_a
+
+note bottom
+  **VERIFICACIÓN COMPLETA DE NO-BUCLES:**
+  ✅ usuarios → mapeo_autenticacion (unidireccional)
+  ✅ clientes → reservas → barberos_servicios → barberos → personal_barbero (FIN)
+  ✅ administradores_barberia → barberias → barberos → personal_barbero (FIN)
+  ✅ No existe camino de vuelta a usuarios desde ninguna entidad operativa
+  ✅ Grafo completamente acíclico
+end note
 
 @enduml

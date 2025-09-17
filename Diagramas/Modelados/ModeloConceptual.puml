@@ -9,20 +9,22 @@ skinparam entity {
     BorderColor #4A90E2
 }
 
-title Modelo Conceptual - Plataforma de Barberías
+title Modelo Conceptual COMPLETAMENTE Sin Bucles - Plataforma de Barberías
 
-' Entidades principales
+' === ENTIDADES INDEPENDIENTES DE AUTENTICACIÓN ===
 ENTITY Usuario {
     PRIMARY_KEY(id_usuario)
     --
     email
     contraseña
-    nombre
-    apellido
-    telefono
     fecha_registro
     estado
 }
+note right of Usuario
+  Solo para autenticación
+  Sin relaciones con otras
+  entidades operativas
+end note
 
 ENTITY Rol {
     PRIMARY_KEY(id_rol)
@@ -31,9 +33,71 @@ ENTITY Rol {
     descripcion
 }
 
+' === ENTIDADES OPERATIVAS INDEPENDIENTES ===
+ENTITY Cliente {
+    PRIMARY_KEY(id_cliente)
+    --
+    email_cliente
+    nombre
+    apellido
+    telefono
+    preferencias
+    fecha_primera_visita
+}
+note right of Cliente
+  Entidad independiente
+  Sin relación con Usuario
+end note
+
+ENTITY AdministradorBarberia {
+    PRIMARY_KEY(id_admin_barberia)
+    --
+    email_admin
+    nombre
+    apellido
+    telefono
+    nivel_acceso
+}
+note right of AdministradorBarberia
+  Entidad independiente
+  Sin relación con Usuario
+end note
+
+ENTITY PersonalBarbero {
+    PRIMARY_KEY(id_personal_barbero)
+    --
+    email_barbero
+    nombre
+    apellido
+    telefono
+    dni
+}
+note right of PersonalBarbero
+  Entidad independiente
+  Sin relación con Usuario
+end note
+
+' === MAPEO DE AUTENTICACIÓN (TABLA PUENTE) ===
+ENTITY MapeoAutenticacion {
+    PRIMARY_KEY(id_mapeo)
+    --
+    FOREIGN_KEY(id_usuario)
+    tipo_entidad
+    id_entidad
+}
+note right of MapeoAutenticacion
+  Tabla puente que mapea
+  usuarios a entidades
+  Sin crear bucles
+  tipo_entidad: 'cliente'|'admin'|'barbero'
+  id_entidad: id correspondiente
+end note
+
+' === ENTIDADES DE BARBERÍA ===
 ENTITY Barberia {
     PRIMARY_KEY(id_barberia)
     --
+    FOREIGN_KEY(id_admin_barberia)
     nombre
     descripcion
     direccion
@@ -51,8 +115,9 @@ ENTITY Barberia {
 ENTITY Barbero {
     PRIMARY_KEY(id_barbero)
     --
-    FOREIGN_KEY(id_usuario)
+    FOREIGN_KEY(id_personal_barbero)
     FOREIGN_KEY(id_barberia)
+    codigo_empleado
     especialidad
     experiencia_años
     foto_url
@@ -71,12 +136,20 @@ ENTITY Servicio {
     estado
 }
 
+' === ASIGNACIONES Y RESERVAS ===
+ENTITY AsignacionBarberoServicio {
+    PRIMARY_KEY(id_asignacion)
+    --
+    FOREIGN_KEY(id_barbero)
+    FOREIGN_KEY(id_servicio)
+    disponible
+}
+
 ENTITY Reserva {
     PRIMARY_KEY(id_reserva)
     --
     FOREIGN_KEY(id_cliente)
-    FOREIGN_KEY(id_barbero)
-    FOREIGN_KEY(id_servicio)
+    FOREIGN_KEY(id_asignacion)
     fecha_hora
     estado
     notas
@@ -88,10 +161,9 @@ ENTITY Calificacion {
     PRIMARY_KEY(id_calificacion)
     --
     FOREIGN_KEY(id_reserva)
-    FOREIGN_KEY(id_cliente)
-    FOREIGN_KEY(id_barbero)
     puntuacion_servicio
     puntuacion_barbero
+    puntuacion_barberia
     comentario
     fecha
 }
@@ -108,7 +180,7 @@ ENTITY Promocion {
     estado
 }
 
-ENTITY Horario {
+ENTITY HorarioBarbero {
     PRIMARY_KEY(id_horario)
     --
     FOREIGN_KEY(id_barbero)
@@ -121,12 +193,17 @@ ENTITY Horario {
 ENTITY LogSistema {
     PRIMARY_KEY(id_log)
     --
-    FOREIGN_KEY(id_usuario)
+    tipo_usuario
+    id_tipo_usuario
     tipo_evento
     descripcion
     ip_direccion
     timestamp
 }
+note right of LogSistema
+  Logs polimórficos
+  sin FK directa
+end note
 
 ENTITY Suscripcion {
     PRIMARY_KEY(id_suscripcion)
@@ -139,23 +216,42 @@ ENTITY Suscripcion {
     monto
 }
 
-' Relaciones
-Usuario ||--o{ Rol : tiene
-Usuario ||--o{ Barbero : es
-Usuario ||--o{ Reserva : realiza
-Usuario ||--o{ Calificacion : hace
-Usuario ||--o{ LogSistema : genera
+' === RELACIONES COMPLETAMENTE SIN BUCLES ===
 
+' Autenticación (aislada)
+Usuario ||--o{ Rol : tiene
+Usuario ||--o{ MapeoAutenticacion : mapea_a
+
+' Administración de barbería
+AdministradorBarberia ||--o{ Barberia : administra
+
+' Personal y barbería  
+PersonalBarbero ||--o{ Barbero : trabaja_como
+
+' Estructura de barbería
 Barberia ||--o{ Barbero : emplea
 Barberia ||--o{ Servicio : ofrece
 Barberia ||--o{ Promocion : publica
 Barberia ||--|| Suscripcion : tiene
 
-Barbero ||--o{ Reserva : atiende
-Barbero ||--o{ Horario : tiene
-Barbero ||--o{ Calificacion : recibe
+' Asignaciones y disponibilidad
+Barbero ||--o{ AsignacionBarberoServicio : tiene_asignado
+Servicio ||--o{ AsignacionBarberoServicio : es_asignado
+Barbero ||--o{ HorarioBarbero : tiene_horario
 
-Servicio ||--o{ Reserva : incluido_en
+' Reservas (sin camino de vuelta a Usuario)
+Cliente ||--o{ Reserva : realiza
+AsignacionBarberoServicio ||--o{ Reserva : define_servicio
 Reserva ||--|| Calificacion : genera
+
+note bottom
+  **VERIFICACIÓN DE NO-BUCLES:**
+  ✓ Usuario está aislado (solo autenticación)
+  ✓ Cliente → Reserva → Asignación → Barbero → PersonalBarbero (sin retorno)
+  ✓ AdministradorBarberia → Barberia → Barbero → PersonalBarbero (sin retorno)
+  ✓ No hay camino de PersonalBarbero a Usuario
+  ✓ No hay camino de Cliente a Usuario
+  ✓ No hay camino de AdministradorBarberia a Usuario
+end note
 
 @enduml
