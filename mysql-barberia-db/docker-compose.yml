@@ -1,0 +1,27 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-barberia
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: barberia_db
+      MYSQL_USER: barberia_user
+      MYSQL_PASSWORD: barberia123
+    ports:
+      - "3308:3306"
+    volumes:
+      # Persistencia de datos
+      - ./data:/var/lib/mysql
+      # Logs personalizados
+      - ./logs:/var/log/mysql
+      # Configuraciones personalizadas
+      - ./config:/etc/mysql/conf.d
+      # Scripts de inicialización
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - barberia-network
+
+networks:
+  barberia-network:
+    driver: bridge
