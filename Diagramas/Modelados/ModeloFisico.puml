@@ -153,8 +153,7 @@ class reservas {
     +id_reserva: SERIAL <<PK>>
     --
     id_cliente: INTEGER <<NOT NULL FK>>
-    id_barbero: INTEGER <<NOT NULL FK>>
-    id_servicio: INTEGER <<NOT NULL FK>>
+    id_barbero_servicio: INTEGER <<NOT NULL FK>>
     fecha_hora: TIMESTAMP <<NOT NULL>>
     duracion_estimada: INTEGER <<NOT NULL>>
     precio_acordado: DECIMAL(10,2) <<NOT NULL>>
@@ -166,8 +165,7 @@ class reservas {
     fecha_completada: TIMESTAMP
     --
     <<INDEX>> idx_reservas_cliente
-    <<INDEX>> idx_reservas_barbero
-    <<INDEX>> idx_reservas_servicio
+    <<INDEX>> idx_reservas_barbero_servicio
     <<INDEX>> idx_reservas_fecha_hora
     <<INDEX>> idx_reservas_estado
     <<INDEX>> idx_reservas_fecha_creacion
@@ -175,8 +173,7 @@ class reservas {
     <<CHECK>> chk_duracion_estimada > 0
     <<CHECK>> chk_precio_acordado > 0
     <<FOREIGN KEY>> (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
-    <<FOREIGN KEY>> (id_barbero) REFERENCES barberos(id_barbero) ON DELETE CASCADE
-    <<FOREIGN KEY>> (id_servicio) REFERENCES servicios(id_servicio) ON DELETE CASCADE
+    <<FOREIGN KEY>> (id_barbero_servicio) REFERENCES barbero_servicios(id_asignacion) ON DELETE CASCADE
 }
 
 class promociones {
@@ -235,8 +232,7 @@ barberos ||--o{ barbero_servicios : "puede_realizar"
 servicios ||--o{ barbero_servicios : "asignado_a"
 
 clientes ||--o{ reservas : "realiza"
-barberos ||--o{ reservas : "atiende"
-servicios ||--o{ reservas : "es_reservado"
+barbero_servicios ||--o{ reservas : "es_reservado"
 
 reservas ||--o| calificaciones : "puede_tener"
 
