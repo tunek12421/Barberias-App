@@ -28,12 +28,6 @@ class clientes {
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     ultimo_acceso: TIMESTAMP
-    --
-    <<INDEX>> idx_clientes_email
-    <<INDEX>> idx_clientes_dni
-    <<INDEX>> idx_clientes_estado
-    <<INDEX>> idx_clientes_puntos
-    <<CHECK>> chk_puntos_fidelidad >= 0
 }
 
 class administradores {
@@ -51,11 +45,6 @@ class administradores {
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     ultimo_acceso: TIMESTAMP
-    --
-    <<INDEX>> idx_administradores_email
-    <<INDEX>> idx_administradores_dni
-    <<INDEX>> idx_administradores_estado
-    <<INDEX>> idx_administradores_nivel_acceso
 }
 
 class barberias {
@@ -74,10 +63,6 @@ class barberias {
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     --
-    <<INDEX>> idx_barberias_administrador
-    <<INDEX>> idx_barberias_estado
-    <<INDEX>> idx_barberias_ubicacion (latitud, longitud)
-    <<CHECK>> chk_horario_valido (horario_apertura < horario_cierre)
     <<FOREIGN KEY>> (id_administrador) REFERENCES administradores(id_administrador)
 }
 
@@ -100,14 +85,6 @@ class barberos {
     fecha_registro: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     ultimo_acceso: TIMESTAMP
     --
-    <<INDEX>> idx_barberos_email
-    <<INDEX>> idx_barberos_dni
-    <<INDEX>> idx_barberos_barberia
-    <<INDEX>> idx_barberos_estado
-    <<INDEX>> idx_barberos_calificacion
-    <<INDEX>> idx_barberos_especialidades (especialidades) USING GIN
-    <<CHECK>> chk_calificacion_range (calificacion_promedio BETWEEN 0.00 AND 5.00)
-    <<CHECK>> chk_experiencia_años >= 0
     <<FOREIGN KEY>> (id_barberia) REFERENCES barberias(id_barberia) ON DELETE CASCADE
 }
 
@@ -123,12 +100,6 @@ class servicios {
     categoria: categoria_servicio_enum <<NOT NULL>>
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     --
-    <<INDEX>> idx_servicios_barberia
-    <<INDEX>> idx_servicios_categoria
-    <<INDEX>> idx_servicios_estado
-    <<INDEX>> idx_servicios_precio
-    <<CHECK>> chk_duracion_minutos BETWEEN 15 AND 180
-    <<CHECK>> chk_precio > 0
     <<FOREIGN KEY>> (id_barberia) REFERENCES barberias(id_barberia) ON DELETE CASCADE
 }
 
@@ -140,9 +111,6 @@ class barbero_servicios {
     id_servicio: INTEGER <<NOT NULL FK>>
     activo: BOOLEAN <<NOT NULL DEFAULT TRUE>>
     --
-    <<INDEX>> idx_asignaciones_barbero
-    <<INDEX>> idx_asignaciones_servicio
-    <<INDEX>> idx_asignaciones_activo
     <<UNIQUE>> uk_barbero_servicio (id_barbero, id_servicio)
     <<FOREIGN KEY>> (id_barbero) REFERENCES barberos(id_barbero) ON DELETE CASCADE
     <<FOREIGN KEY>> (id_servicio) REFERENCES servicios(id_servicio) ON DELETE CASCADE
@@ -164,14 +132,6 @@ class reservas {
     fecha_confirmacion: TIMESTAMP
     fecha_completada: TIMESTAMP
     --
-    <<INDEX>> idx_reservas_cliente
-    <<INDEX>> idx_reservas_barbero_servicio
-    <<INDEX>> idx_reservas_fecha_hora
-    <<INDEX>> idx_reservas_estado
-    <<INDEX>> idx_reservas_fecha_creacion
-    <<CHECK>> chk_fecha_futura (fecha_hora > fecha_creacion)
-    <<CHECK>> chk_duracion_estimada > 0
-    <<CHECK>> chk_precio_acordado > 0
     <<FOREIGN KEY>> (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE
     <<FOREIGN KEY>> (id_barbero_servicio) REFERENCES barbero_servicios(id_asignacion) ON DELETE CASCADE
 }
@@ -191,16 +151,6 @@ class promociones {
     usos_actuales: INTEGER <<DEFAULT 0>>
     estado: estado_enum <<NOT NULL DEFAULT 'activo'>>
     --
-    <<INDEX>> idx_promociones_barberia
-    <<INDEX>> idx_promociones_fechas
-    <<INDEX>> idx_promociones_estado
-    <<CHECK>> chk_fechas_promocion (fecha_fin >= fecha_inicio)
-    <<CHECK>> chk_descuentos (
-        (descuento_porcentaje IS NOT NULL AND descuento_porcentaje BETWEEN 0 AND 100) OR
-        (descuento_monto IS NOT NULL AND descuento_monto > 0)
-    )
-    <<CHECK>> chk_max_usos (max_usos IS NULL OR max_usos > 0)
-    <<CHECK>> chk_usos_actuales (usos_actuales >= 0)
     <<FOREIGN KEY>> (id_barberia) REFERENCES barberias(id_barberia) ON DELETE CASCADE
 }
 
@@ -214,11 +164,6 @@ class calificaciones {
     comentario: TEXT
     fecha_calificacion: TIMESTAMP <<NOT NULL DEFAULT NOW()>>
     --
-    <<INDEX>> idx_calificaciones_reserva
-    <<INDEX>> idx_calificaciones_fecha
-    <<INDEX>> idx_calificaciones_puntuacion
-    <<CHECK>> chk_puntuacion_servicio BETWEEN 1 AND 5
-    <<CHECK>> chk_puntuacion_barbero BETWEEN 1 AND 5
     <<FOREIGN KEY>> (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE
 }
 

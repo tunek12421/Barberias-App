@@ -10,63 +10,60 @@ skinparam note {
     BorderColor #66BB6A
 }
 
-title Modelo Lógico Relacional - Plataforma de Barberías
+title Modelo Lógico Relacional - Sistema de Gestión de Barberías
 
 ' === TABLAS PRINCIPALES ===
-class usuarios {
-    <<table>>
-    +id_usuario: PK
-    --
-    email: AK
-    password_hash
-    rol
-    fecha_registro
-    estado
-    ultimo_acceso
-}
 
 class clientes {
     <<table>>
     +id_cliente: PK
     --
-    id_usuario: FK
+    email: AK
+    password_hash
     nombre
     apellido
     telefono
-    email_contacto: AK
+    dni: AK
+    direccion
+    fecha_nacimiento
     preferencias
     puntos_fidelidad
     fecha_primera_visita
-    estado_cliente
+    estado
+    fecha_registro
+    ultimo_acceso
 }
 
-class administradores_barberia {
+class administradores {
     <<table>>
-    +id_admin: PK
+    +id_administrador: PK
     --
-    id_usuario: FK
+    email: AK
+    password_hash
     nombre
     apellido
     telefono
-    email_contacto: AK
+    dni: AK
     nivel_acceso
-    fecha_asignacion
-    estado_admin
+    permisos_especiales
+    estado
+    fecha_registro
+    ultimo_acceso
 }
 
 class barberias {
     <<table>>
     +id_barberia: PK
     --
-    id_admin: FK
-    codigo_barberia: AK
+    id_administrador: FK
     nombre
-    descripcion
     direccion
     telefono
     email
     horario_apertura
     horario_cierre
+    latitud
+    longitud
     estado
     fecha_registro
 }
@@ -75,21 +72,20 @@ class barberos {
     <<table>>
     +id_barbero: PK
     --
-    id_usuario: FK
-    id_barberia: FK
-    codigo_empleado: AK
+    email: AK
+    password_hash
     nombre
     apellido
     telefono
     dni: AK
-    email_contacto: AK
-    especialidad
+    id_barberia: FK
+    especialidades
     experiencia_años
-    fecha_ingreso
-    foto_perfil
-    biografia
-    estado_barbero
     calificacion_promedio
+    estado
+    fecha_ingreso
+    fecha_registro
+    ultimo_acceso
 }
 
 class servicios {
@@ -97,40 +93,21 @@ class servicios {
     +id_servicio: PK
     --
     id_barberia: FK
-    codigo_servicio: AK
     nombre
     descripcion
     duracion_minutos
     precio
     categoria
-    estado_servicio
+    estado
 }
 
-class barberos_servicios {
+class barbero_servicios {
     <<table>>
     +id_asignacion: PK
     --
     id_barbero: FK
     id_servicio: FK
-    fecha_asignacion
-    precio_especial
     activo
-}
-note right of barberos_servicios
-  **Tabla de asociación**
-  Resuelve relación M:N
-  entre Barberos y Servicios
-end note
-
-class horarios_barbero {
-    <<table>>
-    +id_horario: PK
-    --
-    id_barbero: FK
-    dia_semana
-    hora_inicio
-    hora_fin
-    disponible
 }
 
 class reservas {
@@ -138,14 +115,16 @@ class reservas {
     +id_reserva: PK
     --
     id_cliente: FK
-    id_asignacion: FK
-    codigo_reserva: AK
+    id_barbero_servicio: FK
     fecha_hora
-    estado_reserva
+    duracion_estimada
+    precio_acordado
+    estado
     notas_cliente
     notas_barbero
-    precio_final
     fecha_creacion
+    fecha_confirmacion
+    fecha_completada
 }
 
 class calificaciones {
@@ -155,10 +134,8 @@ class calificaciones {
     id_reserva: FK NN
     puntuacion_servicio
     puntuacion_barbero
-    puntuacion_barberia
     comentario
     fecha_calificacion
-    visible
 }
 
 class promociones {
@@ -166,74 +143,31 @@ class promociones {
     +id_promocion: PK
     --
     id_barberia: FK
-    codigo_promocion: AK
-    titulo
+    nombre
     descripcion
-    tipo_descuento
-    valor_descuento
+    descuento_porcentaje
+    descuento_monto
     fecha_inicio
     fecha_fin
     max_usos
     usos_actuales
-    estado_promocion
+    estado
 }
 
 ' === RELACIONES REFERENCIALES ===
-usuarios ||--o{ clientes : "registra_como"
-usuarios ||--o{ administradores_barberia : "registra_como"
-usuarios ||--o{ barberos : "registra_como"
-
-administradores_barberia ||--o{ barberias : "administra"
+administradores ||--o{ barberias : "administra"
 
 barberias ||--o{ barberos : "emplea"
-
 barberias ||--o{ servicios : "ofrece"
+barberias ||--o{ promociones : "publica"
 
-barberos ||--o{ barberos_servicios : "puede_realizar"
-servicios ||--o{ barberos_servicios : "es_realizado_por"
-
-barberos ||--o{ horarios_barbero : "define_horario"
+barberos ||--o{ barbero_servicios : "puede_realizar"
+servicios ||--o{ barbero_servicios : "es_realizado_por"
 
 clientes ||--o{ reservas : "solicita"
-barberos_servicios ||--o{ reservas : "asigna_servicio"
+barbero_servicios ||--o{ reservas : "asigna_servicio"
 
 reservas ||--o| calificaciones : "genera_calificacion"
 
-barberias ||--o{ promociones : "publica"
-
-note top
-  **MODELO LÓGICO RELACIONAL**
-  
-  **Características del Modelo Lógico:**
-  • Esquema relacional normalizado
-  • Definición de llaves primarias (PK)
-  • Definición de llaves foráneas (FK)
-  • Llaves alternativas (AK) identificadas
-  • Restricciones de integridad
-  • Cardinalidades específicas
-  • Tablas de asociación para relaciones M:N
-  • No especifica tipos de datos detallados
-  
-  **Normalización aplicada:**
-  • 1FN: Eliminación de grupos repetitivos
-  • 2FN: Eliminación de dependencias parciales
-  • 3FN: Eliminación de dependencias transitivas
-end note
-
-note bottom
-  **INTEGRIDAD REFERENCIAL:**
-  
-  • Todas las FK mantienen integridad
-  • Restricciones de dominio aplicadas
-  • Sin ciclos en dependencias
-  • Entidades débiles identificadas
-  • Cardinalidades respetadas
-  
-  **Convenciones:**
-  PK = Primary Key (Llave Primaria)
-  FK = Foreign Key (Llave Foránea)  
-  AK = Alternate Key (Llave Alternativa)
-  NN = Not Null (No Nulo)
-end note
 
 @enduml

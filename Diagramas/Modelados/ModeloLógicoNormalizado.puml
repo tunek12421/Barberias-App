@@ -1,679 +1,237 @@
 @startuml modelo_logico_normalizado_3fn
 skinparam backgroundColor #FFFFFE
 skinparam class {
-    BackgroundColor #FFE6E6
-    BorderColor #E74C3C
-    ArrowColor #E74C3C
-}
-skinparam note {
-    BackgroundColor #FFF9E6
-    BorderColor #FFB300
+    BackgroundColor #E8F5E8
+    BorderColor #2E8B57
+    ArrowColor #2E8B57
 }
 
-title Modelo Lógico Normalizado (3FN) - Plataforma de Barberías
+title Modelo Lógico Normalizado (3FN) - Sistema de Gestión de Barberías
 
-' === SISTEMA DE AUTENTICACIÓN NORMALIZADO ===
+' === TABLAS DE DOMINIO (3FN) ===
 
-class usuarios <<3FN>> {
-    +id_usuario: PK
-    --
-    email: AK NN
-    password_hash: NN
-    rol_id: FK NN
-    fecha_registro: NN
-    ultimo_acceso
-    intentos_fallidos
-    estado_usuario_id: FK NN
-}
-
-class roles <<lookup>> {
-    +id_rol: PK
-    --
-    codigo_rol: AK NN
-    nombre_rol: NN
-    descripcion
-    nivel_jerarquia: NN
-}
-
-class estados_usuario <<lookup>> {
+class estados {
+    <<lookup>>
     +id_estado: PK
     --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    permite_login: NN
-}
-
-class usuarios_sesiones <<3FN>> {
-    +id_sesion: PK
-    --
-    id_usuario: FK NN
-    token_sesion: AK NN
-    ip_direccion
-    user_agent
-    fecha_inicio: NN
-    fecha_expiry: NN
-    activa: NN
-}
-
-' === ENTIDADES DE PERSONAS NORMALIZADAS ===
-
-class personas <<3FN>> {
-    +id_persona: PK
-    --
-    tipo_persona_id: FK NN
-    email_contacto: AK NN
-    dni: AK
-    estado_persona_id: FK NN
-    fecha_registro: NN
-}
-
-class tipos_persona <<lookup>> {
-    +id_tipo: PK
-    --
-    codigo_tipo: AK NN
-    nombre_tipo: NN
+    nombre: AK
     descripcion
 }
 
-class estados_persona <<lookup>> {
-    +id_estado: PK
-    --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-}
-
-class datos_personales <<3FN>> {
-    +id_persona: PK FK
-    --
-    nombre: NN
-    apellido: NN
-    telefono
-    direccion
-    fecha_nacimiento
-}
-
-class vinculacion_usuarios <<3FN>> {
-    +id_vinculacion: PK
-    --
-    id_usuario: FK NN
-    id_persona: FK NN
-    fecha_vinculacion: NN
-    activa: NN
-}
-
-class clientes <<3FN>> {
-    +id_cliente: PK
-    --
-    id_persona: FK NN
-    codigo_cliente: AK
-    fecha_primera_visita
-    cliente_desde: NN
-}
-
-class fidelidad_clientes <<3FN>> {
-    +id_cliente: PK FK
-    --
-    puntos_acumulados: NN
-    nivel_fidelidad_id: FK NN
-    total_visitas: NN
-    monto_total_gastado: NN
-    ultima_visita
-}
-
-class niveles_fidelidad <<lookup>> {
+class niveles_acceso {
+    <<lookup>>
     +id_nivel: PK
     --
-    nombre_nivel: NN
-    puntos_minimos: NN
-    descuento_porcentaje: NN
-    beneficios_json
-}
-
-class preferencias_cliente <<3FN>> {
-    +id_cliente: PK FK
-    --
-    barbero_preferido_id: FK
-    servicio_frecuente_id: FK
-    notificaciones_email: NN
-    notificaciones_sms: NN
-    recordatorios: NN
-}
-
-class administradores_barberia <<3FN>> {
-    +id_admin: PK
-    --
-    id_persona: FK NN
-    codigo_admin: AK
-    nivel_acceso_id: FK NN
-    fecha_asignacion: NN
-}
-
-class niveles_acceso <<lookup>> {
-    +id_nivel: PK
-    --
-    codigo_nivel: AK NN
-    nombre_nivel: NN
-    permisos_json: NN
+    nombre: AK
     descripcion
 }
 
-class especialidades <<lookup>> {
-    +id_especialidad: PK
-    --
-    codigo_especialidad: AK NN
-    nombre_especialidad: NN
-    descripcion
-    requiere_certificacion: NN
-}
-
-' === ESTRUCTURA DE BARBERÍAS NORMALIZADA ===
-
-class barberias <<3FN>> {
-    +id_barberia: PK
-    --
-    id_admin: FK NN
-    codigo_barberia: AK NN
-    nombre: NN
-    descripcion
-    estado_barberia_id: FK NN
-    fecha_registro: NN
-}
-
-class estados_barberia <<lookup>> {
-    +id_estado: PK
-    --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    permite_operacion: NN
-}
-
-class ubicaciones_barberia <<3FN>> {
-    +id_barberia: PK FK
-    --
-    direccion_completa: NN
-    zona_id: FK
-    latitud
-    longitud
-    referencias
-}
-
-class zonas_geograficas <<lookup>> {
-    +id_zona: PK
-    --
-    codigo_zona: AK NN
-    nombre_zona: NN
-    ciudad_id: FK NN
-    codigo_postal
-}
-
-class ciudades <<lookup>> {
-    +id_ciudad: PK
-    --
-    codigo_ciudad: AK NN
-    nombre_ciudad: NN
-    departamento: NN
-    pais: NN
-}
-
-class contactos_barberia <<3FN>> {
-    +id_barberia: PK FK
-    --
-    telefono_principal: NN
-    telefono_secundario
-    email_contacto: NN
-    email_reservas
-    sitio_web
-    redes_sociales_json
-}
-
-class horarios_operacion <<3FN>> {
-    +id_barberia: PK FK
-    +dia_semana: PK
-    --
-    hora_apertura: NN
-    hora_cierre: NN
-    cerrado: NN
-    horario_especial
-}
-
-' === BARBEROS Y EMPLEADOS ===
-
-class barberos <<3FN>> {
-    +id_barbero: PK
-    --
-    id_persona: FK NN
-    id_barberia: FK NN
-    codigo_empleado: AK NN
-    especialidad_id: FK
-    experiencia_años: NN
-    certificaciones_json
-    fecha_ingreso: NN
-    fecha_salida
-    estado_barbero_id: FK NN
-}
-
-class estados_barbero <<lookup>> {
-    +id_estado: PK
-    --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    disponible_reservas: NN
-}
-
-class perfiles_barbero <<3FN>> {
-    +id_barbero: PK FK
-    --
-    foto_perfil_url
-    biografia
-    años_experiencia: NN
-    calificacion_promedio: NN
-    total_servicios: NN
-}
-
-class horarios_barbero <<3FN>> {
-    +id_barbero: PK FK
-    +dia_semana: PK
-    +tipo_horario: PK
-    --
-    hora_inicio: NN
-    hora_fin: NN
-    hora_almuerzo_inicio
-    hora_almuerzo_fin
-    disponible: NN
-    fecha_aplicacion
-}
-
-class tipos_horario <<lookup>> {
-    +id_tipo: PK
-    --
-    codigo_tipo: AK NN
-    nombre_tipo: NN
-    descripcion
-    prioridad: NN
-}
-
-' === SERVICIOS NORMALIZADOS ===
-
-class servicios <<3FN>> {
-    +id_servicio: PK
-    --
-    id_barberia: FK NN
-    codigo_servicio: AK NN
-    nombre: NN
-    descripcion
-    categoria_id: FK NN
-    duracion_minutos: NN
-    precio: NN
-    moneda_id: FK NN
-    estado_servicio_id: FK NN
-}
-
-class categorias_servicio <<lookup>> {
+class categorias_servicio {
+    <<lookup>>
     +id_categoria: PK
     --
-    codigo_categoria: AK NN
-    nombre_categoria: NN
+    nombre: AK
     descripcion
-    icono_url
-    orden_visualizacion: NN
 }
 
-class estados_servicio <<lookup>> {
-    +id_estado: PK
+class estados_reserva {
+    <<lookup>>
+    +id_estado_reserva: PK
     --
-    codigo_estado: AK NN
-    nombre_estado: NN
+    nombre: AK
     descripcion
-    disponible_reserva: NN
 }
 
-class monedas <<lookup>> {
-    +id_moneda: PK
+class especialidades {
+    <<lookup>>
+    +id_especialidad: PK
     --
-    codigo_iso: AK NN
-    nombre_moneda: NN
-    simbolo: NN
-    tasa_cambio: NN
+    nombre: AK
+    descripcion
 }
 
-class detalles_servicio <<3FN>> {
-    +id_servicio: PK FK
+' === ENTIDADES PRINCIPALES NORMALIZADAS ===
+
+class clientes {
+    <<table>>
+    +id_cliente: PK
     --
-    productos_incluidos_json
-    instrucciones_especiales
-    requiere_cita_previa: NN
-    disponible_online: NN
-    imagen_url
+    email: AK
+    password_hash
+    nombre
+    apellido
+    telefono
+    dni: AK
+    direccion
+    fecha_nacimiento
+    preferencias
+    puntos_fidelidad
+    fecha_primera_visita
+    estado_id: FK
+    fecha_registro
+    ultimo_acceso
 }
 
-' === ASIGNACIONES Y CAPACIDADES ===
+class administradores {
+    <<table>>
+    +id_administrador: PK
+    --
+    email: AK
+    password_hash
+    nombre
+    apellido
+    telefono
+    dni: AK
+    nivel_acceso_id: FK
+    permisos_especiales
+    estado_id: FK
+    fecha_registro
+    ultimo_acceso
+}
 
-class barberos_servicios <<3FN>> {
+class barberias {
+    <<table>>
+    +id_barberia: PK
+    --
+    id_administrador: FK
+    nombre
+    direccion
+    telefono
+    email
+    horario_apertura
+    horario_cierre
+    latitud
+    longitud
+    estado_id: FK
+    fecha_registro
+}
+
+class barberos {
+    <<table>>
+    +id_barbero: PK
+    --
+    email: AK
+    password_hash
+    nombre
+    apellido
+    telefono
+    dni: AK
+    id_barberia: FK
+    experiencia_años
+    calificacion_promedio
+    estado_id: FK
+    fecha_ingreso
+    fecha_registro
+    ultimo_acceso
+}
+
+class servicios {
+    <<table>>
+    +id_servicio: PK
+    --
+    id_barberia: FK
+    nombre
+    descripcion
+    duracion_minutos
+    precio
+    categoria_id: FK
+    estado_id: FK
+}
+
+class barbero_servicios {
+    <<table>>
     +id_asignacion: PK
     --
-    id_barbero: FK NN
-    id_servicio: FK NN
-    fecha_asignacion: NN
-    nivel_habilidad_id: FK NN
-    activo: NN
+    id_barbero: FK
+    id_servicio: FK
+    activo
 }
 
-class niveles_habilidad <<lookup>> {
-    +id_nivel: PK
-    --
-    codigo_nivel: AK NN
-    nombre_nivel: NN
-    descripcion
-    orden: NN
-}
-
-class configuracion_asignacion <<3FN>> {
-    +id_asignacion: PK FK
-    --
-    precio_especial
-    tiempo_extra_minutos: NN
-    certificado: NN
-    notas
-}
-
-' === RESERVAS NORMALIZADAS ===
-
-class reservas <<3FN>> {
+class reservas {
+    <<table>>
     +id_reserva: PK
     --
-    codigo_reserva: AK NN
-    id_cliente: FK NN
-    id_asignacion: FK NN
-    fecha_hora: NN
-    estado_reserva_id: FK NN
-    origen_reserva_id: FK NN
-    fecha_creacion: NN
-}
-
-class estados_reserva <<lookup>> {
-    +id_estado: PK
-    --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    color_hex
-    permite_modificacion: NN
-    estado_final: NN
-}
-
-class origenes_reserva <<lookup>> {
-    +id_origen: PK
-    --
-    codigo_origen: AK NN
-    nombre_origen: NN
-    descripcion
-    requiere_confirmacion: NN
-}
-
-class detalles_reserva <<3FN>> {
-    +id_reserva: PK FK
-    --
+    id_cliente: FK
+    id_barbero_servicio: FK
+    fecha_hora
+    duracion_estimada
+    precio_acordado
+    estado_reserva_id: FK
     notas_cliente
     notas_barbero
-    notas_internas
-    tiempo_estimado_minutos: NN
-    recordatorio_enviado: NN
+    fecha_creacion
+    fecha_confirmacion
+    fecha_completada
 }
 
-class precios_reserva <<3FN>> {
-    +id_reserva: PK FK
-    --
-    precio_original: NN
-    descuentos_aplicados: NN
-    precio_final: NN
-    moneda_id: FK NN
-}
-
-class historial_estados <<3FN>> {
-    +id_historial: PK
-    --
-    id_reserva: FK NN
-    estado_anterior_id: FK
-    estado_nuevo_id: FK NN
-    fecha_cambio: NN
-    motivo
-    usuario_responsable
-}
-
-' === PAGOS Y TRANSACCIONES ===
-
-class pagos <<3FN>> {
-    +id_pago: PK
-    --
-    id_reserva: FK NN
-    metodo_pago_id: FK NN
-    monto: NN
-    estado_pago_id: FK NN
-    fecha_pago: NN
-    referencia_externa
-}
-
-class metodos_pago <<lookup>> {
-    +id_metodo: PK
-    --
-    codigo_metodo: AK NN
-    nombre_metodo: NN
-    requiere_confirmacion: NN
-    comision_porcentaje: NN
-    activo: NN
-}
-
-class estados_pago <<lookup>> {
-    +id_estado: PK
-    --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    es_final: NN
-}
-
-' === CALIFICACIONES NORMALIZADAS ===
-
-class calificaciones <<3FN>> {
-    +id_calificacion: PK
-    --
-    id_reserva: FK NN
-    fecha_calificacion: NN
-    visible: NN
-    moderado: NN
-}
-
-class puntuaciones <<3FN>> {
-    +id_calificacion: PK FK
-    +aspecto_id: PK FK
-    --
-    puntuacion: NN
-    comentario
-}
-
-class aspectos_calificacion <<lookup>> {
-    +id_aspecto: PK
-    --
-    codigo_aspecto: AK NN
-    nombre_aspecto: NN
-    descripcion
-    peso_promedio: NN
-    orden: NN
-}
-
-' === PROMOCIONES Y MARKETING ===
-
-class promociones <<3FN>> {
+class promociones {
+    <<table>>
     +id_promocion: PK
     --
-    id_barberia: FK NN
-    codigo_promocion: AK NN
-    titulo: NN
-    descripcion: NN
-    tipo_promocion_id: FK NN
-    estado_promocion_id: FK NN
-    fecha_creacion: NN
-}
-
-class tipos_promocion <<lookup>> {
-    +id_tipo: PK
-    --
-    codigo_tipo: AK NN
-    nombre_tipo: NN
+    id_barberia: FK
+    nombre
     descripcion
-    formula_calculo: NN
+    descuento_porcentaje
+    descuento_monto
+    fecha_inicio
+    fecha_fin
+    max_usos
+    usos_actuales
+    estado_id: FK
 }
 
-class estados_promocion <<lookup>> {
-    +id_estado: PK
+class calificaciones {
+    <<table>>
+    +id_calificacion: PK
     --
-    codigo_estado: AK NN
-    nombre_estado: NN
-    descripcion
-    permite_uso: NN
+    id_reserva: FK
+    puntuacion_servicio
+    puntuacion_barbero
+    comentario
+    fecha_calificacion
 }
 
-class configuracion_promocion <<3FN>> {
-    +id_promocion: PK FK
+' === TABLA MANY-TO-MANY ESPECIALIDADES ===
+
+class barbero_especialidades {
+    <<table>>
+    +id: PK
     --
-    valor_descuento: NN
-    monto_minimo: NN
-    max_usos_total
-    max_usos_cliente: NN
-    usos_actuales: NN
+    id_barbero: FK
+    id_especialidad: FK
 }
 
-class vigencia_promocion <<3FN>> {
-    +id_promocion: PK FK
-    --
-    fecha_inicio: NN
-    fecha_fin: NN
-    hora_inicio
-    hora_fin
-    dias_semana_validos: NN
-}
+' === RELACIONES NORMALIZADAS ===
 
-class aplicaciones_promocion <<3FN>> {
-    +id_aplicacion: PK
-    --
-    id_promocion: FK NN
-    id_reserva: FK NN
-    monto_descuento: NN
-    fecha_aplicacion: NN
-}
+' Referencias a tablas de dominio
+estados ||--o{ clientes : "estado_id"
+estados ||--o{ administradores : "estado_id"
+estados ||--o{ barberos : "estado_id"
+estados ||--o{ barberias : "estado_id"
+estados ||--o{ servicios : "estado_id"
+estados ||--o{ promociones : "estado_id"
 
-' === RELACIONES REFERENCIALES NORMALIZADAS ===
+niveles_acceso ||--o{ administradores : "nivel_acceso_id"
+categorias_servicio ||--o{ servicios : "categoria_id"
+estados_reserva ||--o{ reservas : "estado_reserva_id"
 
-' Sistema de autenticación
-usuarios }o--|| roles
-usuarios }o--|| estados_usuario
-usuarios ||--o{ usuarios_sesiones
-usuarios ||--o{ vinculacion_usuarios
+' Referencias principales
+administradores ||--o{ barberias : "id_administrador"
+barberias ||--o{ barberos : "id_barberia"
+barberias ||--o{ servicios : "id_barberia"
+barberias ||--o{ promociones : "id_barberia"
 
-' Personas y vinculaciones
-personas }o--|| tipos_persona
-personas }o--|| estados_persona
-personas ||--|| datos_personales
-vinculacion_usuarios }o--|| personas
+' Relaciones many-to-many
+barberos ||--o{ barbero_servicios : "id_barbero"
+servicios ||--o{ barbero_servicios : "id_servicio"
 
-' Clientes
-personas ||--o| clientes
-clientes ||--|| fidelidad_clientes
-fidelidad_clientes }o--|| niveles_fidelidad
-clientes ||--|| preferencias_cliente
+barberos ||--o{ barbero_especialidades : "id_barbero"
+especialidades ||--o{ barbero_especialidades : "id_especialidad"
 
-' Administradores
-personas ||--o{ administradores_barberia
-administradores_barberia }o--|| niveles_acceso
+' Relaciones de reservas y calificaciones
+clientes ||--o{ reservas : "id_cliente"
+barbero_servicios ||--o{ reservas : "id_barbero_servicio"
+reservas ||--o| calificaciones : "id_reserva"
 
-' Personal barbero
-personas ||--o{ personal_barbero
-personal_barbero }o--|| especialidades
-
-' Barberías
-administradores_barberia ||--o{ barberias
-barberias }o--|| estados_barberia
-barberias ||--|| ubicaciones_barberia
-ubicaciones_barberia }o--|| zonas_geograficas
-zonas_geograficas }o--|| ciudades
-barberias ||--|| contactos_barberia
-barberias ||--o{ horarios_operacion
-
-' Barberos
-personal_barbero ||--o{ barberos
-barberias ||--o{ barberos
-barberos }o--|| estados_barbero
-barberos ||--|| perfiles_barbero
-barberos ||--o{ horarios_barbero
-horarios_barbero }o--|| tipos_horario
-
-' Servicios
-barberias ||--o{ servicios
-servicios }o--|| categorias_servicio
-servicios }o--|| estados_servicio
-servicios }o--|| monedas
-servicios ||--|| detalles_servicio
-
-' Asignaciones
-barberos ||--o{ barberos_servicios
-servicios ||--o{ barberos_servicios
-barberos_servicios }o--|| niveles_habilidad
-barberos_servicios ||--|| configuracion_asignacion
-
-' Reservas
-clientes ||--o{ reservas
-barberos_servicios ||--o{ reservas
-reservas }o--|| estados_reserva
-reservas }o--|| origenes_reserva
-reservas ||--|| detalles_reserva
-reservas ||--|| precios_reserva
-precios_reserva }o--|| monedas
-reservas ||--o{ historial_estados
-
-' Pagos
-reservas ||--o{ pagos
-pagos }o--|| metodos_pago
-pagos }o--|| estados_pago
-
-' Calificaciones
-reservas ||--|| calificaciones
-calificaciones ||--o{ puntuaciones
-puntuaciones }o--|| aspectos_calificacion
-
-' Promociones
-barberias ||--o{ promociones
-promociones }o--|| tipos_promocion
-promociones }o--|| estados_promocion
-promociones ||--|| configuracion_promocion
-promociones ||--|| vigencia_promocion
-promociones ||--o{ aplicaciones_promocion
-aplicaciones_promocion }o--|| reservas
-
-note bottom
-  **MODELO LÓGICO NORMALIZADO - TERCERA FORMA NORMAL (3FN)**
-  
-  **Características de Normalización:**
-  • Eliminación completa de dependencias transitivas
-  • Separación de entidades lookup para dominios
-  • Atomicidad de datos garantizada
-  • Integridad referencial completa
-  • Reducción máxima de redundancia
-  • Optimización para consistencia
-  
-  **Beneficios de esta estructura:**
-  • Mantenimiento de datos centralizado
-  • Flexibilidad para cambios futuros
-  • Integridad de datos garantizada
-  • Escalabilidad horizontal
-  • Separación clara de responsabilidades
-  
-  **Convenciones utilizadas:**
-  PK = Primary Key | FK = Foreign Key | AK = Alternate Key | NN = Not Null
-  3FN = Tercera Forma Normal | lookup = Tabla de dominio
-end note
 
 @enduml

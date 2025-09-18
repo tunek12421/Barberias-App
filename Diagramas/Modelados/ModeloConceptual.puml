@@ -1,155 +1,136 @@
-@startuml modelo_conceptual_mer
+@startuml modelo_conceptual
 skinparam backgroundColor #FFFFFE
 skinparam entity {
-    BackgroundColor #FFE6CC
-    BorderColor #FF8C00
+    BackgroundColor #E6F3FF
+    BorderColor #2E86AB
 }
 skinparam note {
     BackgroundColor #FFF2CC
     BorderColor #D6B656
 }
 
-title Modelo Entidad-Relación (MER) - Plataforma de Barberías
+title Modelo Conceptual - Sistema de Gestión de Barberías
 
-' === ENTIDADES FUERTES ===
-entity Usuario {
-    email
-    contraseña
-    rol
-}
+' === ENTIDADES PRINCIPALES ===
 
-entity Cliente {
-    nombre_completo
+entity CLIENTE {
     email
-    telefono
-    preferencias
-}
-
-entity AdministradorBarberia {
-    nombre_completo
-    email
-    telefono
-    nivel_acceso
-}
-
-entity Barbero {
-    nombre_completo
-    email
+    password_hash
+    nombre
+    apellido
     telefono
     dni
-    especialidad
-    experiencia
-    codigo_empleado
-    fecha_ingreso
-    estado_laboral
-}
-entity Barberia {
-    nombre
-    descripcion
-    ubicacion
-    horarios
-    contacto
+    direccion
+    fecha_nacimiento
+    preferencias
+    puntos_fidelidad
+    fecha_primera_visita
+    estado
+    fecha_registro
+    ultimo_acceso
 }
 
-entity Servicio {
+entity ADMINISTRADOR {
+    email
+    password_hash
+    nombre
+    apellido
+    telefono
+    dni
+    nivel_acceso
+    permisos_especiales
+    estado
+    fecha_registro
+    ultimo_acceso
+}
+
+entity BARBERIA {
+    nombre
+    direccion
+    telefono
+    email
+    horario_apertura
+    horario_cierre
+    latitud
+    longitud
+    estado
+    fecha_registro
+}
+
+entity BARBERO {
+    email
+    password_hash
+    nombre
+    apellido
+    telefono
+    dni
+    especialidades
+    experiencia_años
+    calificacion_promedio
+    estado
+    fecha_ingreso
+    fecha_registro
+    ultimo_acceso
+}
+
+entity SERVICIO {
     nombre
     descripcion
-    duracion
+    duracion_minutos
     precio
     categoria
-}
-
-entity Promocion {
-    titulo
-    descripcion
-    descuento
-    vigencia
-}
-
-' === ENTIDADES DÉBILES ===
-
-entity Reserva {
-    fecha_hora
     estado
-    notas
-    precio
 }
-note right of Reserva
-  Entidad débil: depende
-  de Cliente y AsignacionServicio
-end note
 
-entity Calificacion {
+entity RESERVA {
+    fecha_hora
+    duracion_estimada
+    precio_acordado
+    estado
+    notas_cliente
+    notas_barbero
+    fecha_creacion
+    fecha_confirmacion
+    fecha_completada
+}
+
+entity PROMOCION {
+    nombre
+    descripcion
+    descuento_porcentaje
+    descuento_monto
+    fecha_inicio
+    fecha_fin
+    max_usos
+    usos_actuales
+    estado
+}
+
+entity CALIFICACION {
     puntuacion_servicio
     puntuacion_barbero
-    puntuacion_barberia
     comentario
-    fecha
+    fecha_calificacion
 }
-note right of Calificacion
-  Entidad débil: depende
-  completamente de Reserva
-end note
 
-entity HorarioDisponibilidad {
-    dia_semana
-    hora_inicio
-    hora_fin
-    disponible
+' === RELACIÓN ASOCIATIVA ===
+entity BARBERO_SERVICIO {
+    activo
 }
-note right of HorarioDisponibilidad
-  Entidad débil: depende
-  de Barbero
-end note
 
 ' === RELACIONES ===
-entity AsignacionServicio {
-    fecha_asignacion
-    estado_asignacion
-}
-note right of AsignacionServicio
-  Entidad asociativa
-  entre Barbero y Servicio
-end note
+ADMINISTRADOR ||--o{ BARBERIA : "ADMINISTRA"
+BARBERIA ||--o{ BARBERO : "EMPLEA"
+BARBERIA ||--o{ SERVICIO : "OFRECE"
+BARBERIA ||--o{ PROMOCION : "PUBLICA"
 
-' === RELACIONES BINARIAS ===
-Usuario ||--o{ Cliente : "se_registra_como"
-Usuario ||--o{ AdministradorBarberia : "se_registra_como"
-Usuario ||--o{ Barbero : "se_registra_como"
+BARBERO }o--o{ BARBERO_SERVICIO : "PUEDE_REALIZAR"
+SERVICIO }o--o{ BARBERO_SERVICIO : "ES_ASIGNADO_A"
 
-AdministradorBarberia ||--o{ Barberia : "administra"
+CLIENTE ||--o{ RESERVA : "REALIZA"
+BARBERO_SERVICIO ||--o{ RESERVA : "SE_RESERVA"
 
-Barberia ||--o{ Barbero : "emplea"
+RESERVA ||--o| CALIFICACION : "RECIBE"
 
-Barberia ||--o{ Servicio : "ofrece"
-Barberia ||--o{ Promocion : "publica"
-
-Barbero ||--o{ HorarioDisponibilidad : "define"
-
-' === RELACIÓN TERNARIA CLAVE ===
-Barbero }o--o{ AsignacionServicio : "puede_realizar"
-Servicio }o--o{ AsignacionServicio : "es_realizado_por"
-
-Cliente ||--o{ Reserva : "solicita"
-AsignacionServicio ||--o{ Reserva : "define_servicio"
-
-Reserva ||--|| Calificacion : "genera"
-
-note bottom
-  **MODELO ENTIDAD-RELACIÓN (MER)**
-  
-  **Características del MER:**
-  • Enfoque conceptual alto nivel
-  • Entidades con atributos conceptuales
-  • Relaciones semánticas claras
-  • No especifica tipos de datos
-  • No define llaves primarias/foráneas
-  • Identifica entidades fuertes y débiles
-  • Muestra cardinalidades conceptuales
-  
-  **Entidades Fuertes:** Tienen existencia independiente
-  **Entidades Débiles:** Dependen de otras entidades
-  **Relaciones:** Representan asociaciones conceptuales
-end note
 
 @enduml
