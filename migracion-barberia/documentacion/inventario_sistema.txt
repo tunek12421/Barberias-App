@@ -1,0 +1,107 @@
+========================================
+INFORMACIÓN DEL SISTEMA
+========================================
+
+1. INFORMACIÓN DEL HOST:
+------------------------
+Sistema Operativo:
+Linux DESKTOP-2VB2SSA 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+
+Versión del Kernel:
+6.6.87.2-microsoft-standard-WSL2
+
+Memoria RAM:
+               total        used        free      shared  buff/cache   available
+Mem:           7.4Gi       2.6Gi       4.3Gi       6.0Mi       519Mi       4.6Gi
+Swap:          2.0Gi          0B       2.0Gi
+
+Espacio en Disco:
+Filesystem                 Size  Used Avail Use% Mounted on
+none                       3.8G     0  3.8G   0% /usr/lib/modules/6.6.87.2-microsoft-standard-WSL2
+none                       3.8G  4.0K  3.8G   1% /mnt/wsl
+drivers                    236G  222G   14G  95% /usr/lib/wsl/drivers
+/dev/sdd                  1007G   34G  922G   4% /
+none                       3.8G  108K  3.8G   1% /mnt/wslg
+none                       3.8G     0  3.8G   0% /usr/lib/wsl/lib
+rootfs                     3.8G  2.7M  3.8G   1% /init
+none                       3.8G  1.1M  3.8G   1% /run
+none                       3.8G     0  3.8G   0% /run/lock
+none                       3.8G     0  3.8G   0% /run/shm
+none                       3.8G   96K  3.8G   1% /mnt/wslg/versions.txt
+none                       3.8G   96K  3.8G   1% /mnt/wslg/doc
+C:\                        236G  222G   14G  95% /mnt/c
+D:\                        348G   63G  285G  19% /mnt/d
+E:\                        348G   18G  331G   5% /mnt/e
+snapfuse                   128K  128K     0 100% /snap/bare/5
+snapfuse                   186M  186M     0 100% /snap/chromium/3251
+snapfuse                   186M  186M     0 100% /snap/chromium/3248
+snapfuse                    74M   74M     0 100% /snap/core22/2111
+snapfuse                    74M   74M     0 100% /snap/core22/2133
+snapfuse                    67M   67M     0 100% /snap/core24/1151
+snapfuse                    68M   68M     0 100% /snap/cups/1100
+snapfuse                   517M  517M     0 100% /snap/gnome-42-2204/202
+snapfuse                   517M  517M     0 100% /snap/gnome-42-2204/226
+snapfuse                    92M   92M     0 100% /snap/gtk-common-themes/1535
+snapfuse                   576M  576M     0 100% /snap/seclists/1214
+snapfuse                    50M   50M     0 100% /snap/snapd/24792
+snapfuse                    51M   51M     0 100% /snap/snapd/25202
+tmpfs                      3.8G  4.0K  3.8G   1% /run/user/1000
+/dev/mapper/e_secure_1000  4.6G  3.1G  1.3G  72% /home/tunek/.e
+
+CPU Info:
+Architecture:                         x86_64
+CPU op-mode(s):                       32-bit, 64-bit
+Address sizes:                        48 bits physical, 48 bits virtual
+Byte Order:                           Little Endian
+CPU(s):                               16
+On-line CPU(s) list:                  0-15
+Vendor ID:                            AuthenticAMD
+Model name:                           AMD Ryzen 7 5700G with Radeon Graphics
+CPU family:                           25
+Model:                                80
+Thread(s) per core:                   2
+Core(s) per socket:                   8
+Socket(s):                            1
+Stepping:                             0
+BogoMIPS:                             7585.58
+
+2. VERSIONES DE SOFTWARE:
+------------------------
+Docker Version:
+Docker version 28.3.3, build 980b856
+
+Docker Compose Version:
+Docker Compose version v2.39.1
+
+MySQL Client Version:
+mysql  Ver 8.0.43-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))
+
+PostgreSQL Client Version:
+PostgreSQL client no instalado
+
+3. CONTENEDOR MySQL ACTUAL:
+------------------------
+Estado del contenedor:
+50f4cddeeb87   mysql:8.0   "docker-entrypoint.s…"   8 minutes ago   Up 8 minutes   33060/tcp, 0.0.0.0:3308->3306/tcp, [::]:3308->3306/tcp   mysql-barberia
+
+Estadísticas de recursos:
+CONTAINER ID   NAME             CPU %     MEM USAGE / LIMIT     MEM %     NET I/O       BLOCK I/O        PIDS
+50f4cddeeb87   mysql-barberia   0.31%     352.8MiB / 7.444GiB   4.63%     180B / 126B   3.22MB / 278MB   37
+
+Información de red:
+NETWORK ID     NAME                                 DRIVER    SCOPE
+292bf0092970   bridge                               bridge    local
+4f8236a16e77   host                                 host      local
+cc9b6d070542   mysql-barberia-db_barberia-network   bridge    local
+110e31a99290   none                                 null      local
+
+Volúmenes:
+DRIVER    VOLUME NAME
+
+4. TAMAÑO DE LA BASE DE DATOS MySQL:
+------------------------
+1.4M	/var/lib/mysql/barberia_db
+
+========================================
+FIN DEL REPORTE
+========================================
