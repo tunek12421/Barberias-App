@@ -1,0 +1,39 @@
+MAPEO DE CONVERSIÓN MySQL → PostgreSQL
+=======================================
+
+TIPOS DE DATOS:
+--------------
+INT AUTO_INCREMENT     → SERIAL o GENERATED ALWAYS AS IDENTITY
+VARCHAR(n)            → VARCHAR(n) [Sin cambios]
+TEXT                  → TEXT [Sin cambios]
+DECIMAL(p,s)          → DECIMAL(p,s) [Sin cambios]
+TIMESTAMP             → TIMESTAMP [Sin cambios]
+DATETIME              → TIMESTAMP
+DATE                  → DATE [Sin cambios]
+TIME                  → TIME [Sin cambios]
+JSON                  → JSONB [Más eficiente en PostgreSQL]
+ENUM('a','b','c')     → VARCHAR(n) CHECK (columna IN ('a','b','c'))
+TINYINT(1)            → BOOLEAN
+TINYINT               → SMALLINT
+BIGINT                → BIGINT [Sin cambios]
+
+FUNCIONES DE FECHA/HORA:
+-----------------------
+NOW()                 → NOW() o CURRENT_TIMESTAMP
+CURDATE()             → CURRENT_DATE
+CURTIME()             → CURRENT_TIME
+
+SINTAXIS ESPECIAL:
+-----------------
+LIMIT x,y             → LIMIT y OFFSET x
+`` (backticks)        → "" (comillas dobles) o sin comillas
+IF()                  → CASE WHEN ... THEN ... END
+
+PROCEDIMIENTOS:
+--------------
+CREATE PROCEDURE      → CREATE FUNCTION ... RETURNS void/tipo
+CALL procedimiento    → SELECT funcion()
+
+TRIGGERS:
+--------
+Reescribir completamente usando sintaxis PL/pgSQL
